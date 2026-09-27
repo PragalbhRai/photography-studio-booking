@@ -10,6 +10,8 @@ import { formatDuration, formatPrice } from '@/lib/format'
 import { Button } from '@/components/ui/Button'
 import { TextArea, TextField } from '@/components/ui/TextField'
 import { PageState, Skeleton } from '@/components/ui/States'
+import { FinancialAnalyticsHub } from '@/components/admin/FinancialAnalyticsHub'
+import { getStudioFinancialAnalytics } from '@/lib/financial-analytics'
 
 const photographerSchema = z.object({
   email: z.string().email(),
@@ -40,9 +42,10 @@ export const Route = createFileRoute('/admin')({
 
 function AdminDashboard() {
   const queryClient = useQueryClient()
-  const [tab, setTab] = useState<'photographers' | 'packages'>('photographers')
+  const [tab, setTab] = useState<'financials' | 'photographers' | 'packages'>('financials')
   const photographers = useQuery({ queryKey: queryKeys.photographers, queryFn: photographersApi.list })
   const packages = useQuery({ queryKey: queryKeys.packages, queryFn: packagesApi.list })
+  const financialData = getStudioFinancialAnalytics()
 
   const photogForm = useForm<PhotographerForm>({
     defaultValues: { email: '', password: '', full_name: '', bio: '', specialties: '' },
@@ -99,29 +102,48 @@ function AdminDashboard() {
 
   return (
     <div className="mx-auto max-w-site px-5 py-16 md:px-8">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-brass">Administration</p>
-      <h1 className="mt-2 font-display text-5xl">Studio overview</h1>
+      <p className="text-[11px] uppercase tracking-[0.22em] text-brass">Studio Executive Portal</p>
+      <h1 className="mt-2 font-display text-5xl">Studio Overview & Operations</h1>
       <p className="mt-3 max-w-2xl text-mute">
-        Manage studio photographers, offerings, and package assignments across the platform.
+        Real-time financial analytics, revenue trajectories, promotional privileges, and artist roster management.
       </p>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="border border-line bg-cream p-6">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Photographers</p>
-          <p className="mt-2 font-display text-5xl">{photographers.data?.length ?? '—'}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Studio Gross Revenue</p>
+            <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-100 px-1.5 py-0.5">+28.4%</span>
+          </div>
+          <p className="mt-2 font-display text-4xl">{formatPrice(financialData.summary.totalGrossRevenue)}</p>
+          <p className="mt-1 text-xs text-mute">{financialData.summary.totalBookingsCount} authenticated sessions</p>
         </div>
         <div className="border border-line bg-cream p-6">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Packages</p>
-          <p className="mt-2 font-display text-5xl">{packages.data?.length ?? '—'}</p>
+          <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Active Photographers</p>
+          <p className="mt-2 font-display text-4xl">{photographers.data?.length ?? '—'}</p>
+          <p className="mt-1 text-xs text-mute">Master resident artists</p>
         </div>
         <div className="border border-line bg-cream p-6">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Studio Mode</p>
-          <p className="mt-2 font-display text-xl">Active & Operational</p>
+          <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Curated Offerings</p>
+          <p className="mt-2 font-display text-4xl">{packages.data?.length ?? '—'}</p>
+          <p className="mt-1 text-xs text-mute">Active studio tiers</p>
+        </div>
+        <div className="border border-line bg-cream p-6">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Studio Operations</p>
+          <p className="mt-2 font-display text-xl text-emerald-800">Operational & Settled</p>
           <p className="mt-1 text-xs text-mute">Timezone: Asia/Kolkata</p>
         </div>
       </div>
 
-      <div className="mt-10 flex gap-2 border-b border-line pb-4">
+      <div className="mt-10 flex flex-wrap gap-2 border-b border-line pb-4">
+        <button
+          type="button"
+          onClick={() => setTab('financials')}
+          className={`border px-5 py-2.5 text-xs uppercase tracking-[0.16em] transition ${
+            tab === 'financials' ? 'border-ink bg-ink text-cream' : 'border-line text-mute hover:text-ink'
+          }`}
+        >
+          📊 Financial & Revenue Hub
+        </button>
         <button
           type="button"
           onClick={() => setTab('photographers')}
@@ -129,7 +151,7 @@ function AdminDashboard() {
             tab === 'photographers' ? 'border-ink bg-ink text-cream' : 'border-line text-mute hover:text-ink'
           }`}
         >
-          Photographers ({photographers.data?.length ?? 0})
+          👥 Photographers ({photographers.data?.length ?? 0})
         </button>
         <button
           type="button"
@@ -138,12 +160,15 @@ function AdminDashboard() {
             tab === 'packages' ? 'border-ink bg-ink text-cream' : 'border-line text-mute hover:text-ink'
           }`}
         >
-          Packages ({packages.data?.length ?? 0})
+          📦 Packages ({packages.data?.length ?? 0})
         </button>
       </div>
 
-      {tab === 'photographers' ? (
-        <div className="mt-10 grid gap-10 lg:grid-cols-2">
+      <div className="mt-10">
+        {tab === 'financials' && <FinancialAnalyticsHub />}
+
+        {tab === 'photographers' && (
+          <div className="mt-10 grid gap-10 lg:grid-cols-2">
           <form
             className="space-y-4 border border-line bg-cream p-6"
             onSubmit={photogForm.handleSubmit((values) => {
@@ -213,8 +238,10 @@ function AdminDashboard() {
             )}
           </div>
         </div>
-      ) : (
-        <div className="mt-10 grid gap-10 lg:grid-cols-2">
+        )}
+
+        {tab === 'packages' && (
+          <div className="mt-10 grid gap-10 lg:grid-cols-2">
           <form
             className="space-y-4 border border-line bg-cream p-6"
             onSubmit={pkgForm.handleSubmit((values) => {
@@ -305,6 +332,7 @@ function AdminDashboard() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

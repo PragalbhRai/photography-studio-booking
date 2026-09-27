@@ -21,6 +21,7 @@ import { SITTING_ADDONS } from '@/lib/addons'
 import { MoodboardSelector } from '@/components/booking/MoodboardSelector'
 import { MOODBOARD_PRESETS } from '@/lib/moodboards'
 import { cn } from '@/lib/cn'
+import { validatePromoCode, recordPromoCodeRedemption, type PromoCode } from '@/lib/promo-codes'
 
 type BookSearch = {
   packageId?: string
@@ -90,11 +91,39 @@ function BookPage() {
   const pkg = selectedPackageQuery.data
   const photographer = selectedPhotographerQuery.data ?? photographersQuery.data?.find((p) => p.id === photographerId)
 
+  const [promoInput, setPromoInput] = useState('')
+  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null)
+  const [promoDiscount, setPromoDiscount] = useState<number>(0)
+  const [promoError, setPromoError] = useState<string | null>(null)
+  const [promoSuccessMsg, setPromoSuccessMsg] = useState<string | null>(null)
+
   const addonsTotal = selectedAddons.reduce((sum, id) => {
     const found = SITTING_ADDONS.find((a) => a.id === id)
     return sum + (found?.price ?? 0)
   }, 0)
-  const finalPrice = (pkg?.price ?? 0) + addonsTotal
+  const subtotal = (pkg?.price ?? 0) + addonsTotal
+  const finalPrice = Math.max(subtotal - promoDiscount, 0)
+
+  const handleApplyPromo = () => {
+    setPromoError(null)
+    setPromoSuccessMsg(null)
+    const res = validatePromoCode(promoInput, subtotal, pkg?.category)
+    if (!res.valid) {
+      setPromoError(res.message)
+      return
+    }
+    setAppliedPromo(res.promo || null)
+    setPromoDiscount(res.discount)
+    setPromoSuccessMsg(res.message)
+  }
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null)
+    setPromoDiscount(0)
+    setPromoInput('')
+    setPromoError(null)
+    setPromoSuccessMsg(null)
+  }
 
   const bookingMutation = useMutation({
     mutationFn: () =>
@@ -107,6 +136,9 @@ function BookPage() {
         moodboard_id: selectedMoodboard ?? undefined,
       }),
     onSuccess: async () => {
+      if (appliedPromo) {
+        recordPromoCodeRedemption(appliedPromo.code)
+      }
       await queryClient.invalidateQueries({ queryKey: queryKeys.myBookings })
       void navigate({ to: '/dashboard' })
     },
@@ -383,11 +415,51 @@ function BookPage() {
                       <dd className="font-medium">+{formatPrice(addonsTotal)}</dd>
                     </div>
                   ) : null}
+                  {appliedPromo && promoDiscount > 0 ? (
+                    <div className="flex justify-between gap-4 border-b border-line pb-3 text-emerald-700">
+                      <dt className="flex items-center gap-1.5">
+                        <span className="font-medium">Privilege ({appliedPromo.code})</span>
+                        <button
+                          type="button"
+                          onClick={handleRemovePromo}
+                          className="text-[10px] text-mute underline hover:text-ink"
+                        >
+                          (Remove)
+                        </button>
+                      </dt>
+                      <dd className="font-medium">-{formatPrice(promoDiscount)}</dd>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between gap-4 pt-1">
                   <dt className="text-mute">Total Investment</dt>
                   <dd className="font-display text-2xl font-semibold text-ink">{formatPrice(finalPrice)}</dd>
                 </div>
               </dl>
+
+              {/* Promotional Privilege Code Input */}
+              <div className="mt-4 border-t border-line/70 pt-4">
+                <p className="text-[10px] uppercase tracking-[0.16em] text-mute mb-1.5">Studio Privilege Code</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. ROYAL20, STUDIO5000"
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                    className="w-full border border-line bg-paper px-3 py-1.5 font-mono text-xs uppercase tracking-wider focus:border-ink focus:outline-none"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleApplyPromo}
+                    disabled={!promoInput.trim()}
+                  >
+                    Apply
+                  </Button>
+                </div>
+                {promoError ? <p className="mt-1 text-[11px] text-red-700">{promoError}</p> : null}
+                {promoSuccessMsg ? <p className="mt-1 text-[11px] text-emerald-700">{promoSuccessMsg}</p> : null}
+              </div>
               <label className="mt-8 flex items-start gap-3 text-sm">
                 <input
                   type="checkbox"
