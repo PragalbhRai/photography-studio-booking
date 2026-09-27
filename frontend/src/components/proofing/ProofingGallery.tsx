@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/Button'
 import { TiltCard } from '@/components/ui/TiltCard'
 import { CinematicSlideshow } from './CinematicSlideshow'
 import { WallArtVisualizerModal } from './WallArtVisualizerModal'
 import { OpticalLoupeInspector } from './OpticalLoupeInspector'
+import { VoiceCapsuleModal } from './VoiceCapsuleModal'
+import {
+  getStoredVoiceCapsules,
+  studioSoundscape,
+  type SoundscapeMood,
+} from '@/lib/soundtrack'
 
 export interface ProofFrame {
   id: string
@@ -100,6 +106,16 @@ export function ProofingGallery() {
   const [visualizerProof, setVisualizerProof] = useState<ProofFrame | undefined>(undefined)
   const [loupeOpen, setLoupeOpen] = useState<boolean>(false)
   const [loupeProof, setLoupeProof] = useState<ProofFrame | undefined>(undefined)
+  const [voiceModalOpen, setVoiceModalOpen] = useState<boolean>(false)
+  const [voiceModalProof, setVoiceModalProof] = useState<ProofFrame | null>(null)
+  const [capsuleVersion, setCapsuleVersion] = useState<number>(0)
+  const [gallerySoundscapeMood, setGallerySoundscapeMood] = useState<SoundscapeMood>('off')
+
+  const allCapsules = useMemo(() => {
+    return getStoredVoiceCapsules()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [capsuleVersion])
+
   const [notes, setNotes] = useState<Record<string, string>>({
     'proof-1': 'Please preserve rich crimson hue in the veil and remove background tourist.',
   })
@@ -188,6 +204,38 @@ export function ProofingGallery() {
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
+            onClick={() => {
+              setVoiceModalProof(filteredProofs[0] || SAMPLE_PROOFS[0])
+              setVoiceModalOpen(true)
+            }}
+            className="rounded border border-brass/60 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition flex items-center gap-1.5 font-medium shadow-sm"
+          >
+            <span>🎙️</span> Voice Capsules ({allCapsules.length})
+          </button>
+          <div className="flex items-center gap-1.5 rounded border border-line bg-cream px-2.5 py-1 text-xs">
+            <span className="text-[10px] uppercase text-mute">🎵 Score:</span>
+            <select
+              value={gallerySoundscapeMood}
+              onChange={(e) => {
+                const mood = e.target.value as SoundscapeMood
+                setGallerySoundscapeMood(mood)
+                if (mood === 'off') {
+                  studioSoundscape.stop()
+                } else {
+                  studioSoundscape.play(mood)
+                  studioSoundscape.setVolume(0.2)
+                }
+              }}
+              className="bg-transparent text-xs text-ink cursor-pointer focus:outline-none"
+            >
+              <option value="off">Off</option>
+              <option value="strings">Palace Strings</option>
+              <option value="piano">Intimate Piano</option>
+              <option value="ethereal">Twilight</option>
+            </select>
+          </div>
+          <button
+            type="button"
             onClick={() => setSlideshowOpen(true)}
             className="rounded border border-brass/60 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition flex items-center gap-1.5 font-medium shadow-sm"
           >
@@ -235,6 +283,7 @@ export function ProofingGallery() {
         {filteredProofs.map((proof: ProofFrame) => {
           const isFav = favorites.includes(proof.id)
           const hasNote = Boolean(notes[proof.id])
+          const frameCapsules = allCapsules.filter((c) => c.proofId === proof.id)
           return (
             <TiltCard
               key={proof.id}
@@ -287,11 +336,18 @@ export function ProofingGallery() {
                     <span className="text-[10px] uppercase tracking-wider text-brass font-semibold">
                       {proof.category}
                     </span>
-                    {hasNote ? (
-                      <span className="text-[9px] uppercase tracking-wider text-mute bg-paper px-1.5 py-0.5 rounded border border-line">
-                        📝 Note Added
-                      </span>
-                    ) : null}
+                    <div className="flex items-center gap-1">
+                      {frameCapsules.length > 0 && (
+                        <span className="text-[9px] uppercase tracking-wider text-brass bg-brass/15 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
+                          <span>🎙️</span> {frameCapsules.length}
+                        </span>
+                      )}
+                      {hasNote ? (
+                        <span className="text-[9px] uppercase tracking-wider text-mute bg-paper px-1.5 py-0.5 rounded border border-line">
+                          📝
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                   <h4 className="mt-1 font-display text-sm font-semibold text-ink line-clamp-1">
                     {proof.title}
@@ -299,6 +355,18 @@ export function ProofingGallery() {
                   <p className="mt-1 text-[10px] text-mute font-mono truncate">
                     {proof.exif.split('·')[0]}
                   </p>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setVoiceModalProof(proof)
+                      setVoiceModalOpen(true)
+                    }}
+                    className="mt-2.5 w-full flex items-center justify-center gap-1.5 rounded border border-line bg-paper py-1 text-[10px] uppercase tracking-wider text-ink hover:border-brass hover:text-brass transition"
+                  >
+                    <span>🎙️</span> {frameCapsules.length > 0 ? `Voice Capsule (${frameCapsules.length})` : 'Attach Voice Note'}
+                  </button>
                 </div>
               </div>
             </TiltCard>
@@ -411,6 +479,16 @@ export function ProofingGallery() {
                 >
                   <span>🔬</span> 100MP Loupe
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVoiceModalProof(selectedProof)
+                    setVoiceModalOpen(true)
+                  }}
+                  className="rounded border border-brass/60 bg-cream px-3 py-2 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition flex items-center gap-1.5 font-medium"
+                >
+                  <span>🎙️</span> Voice Capsule Studio
+                </button>
                 <Button size="sm" onClick={() => setSelectedProof(null)}>
                   Save & Done
                 </Button>
@@ -445,6 +523,17 @@ export function ProofingGallery() {
           proof={loupeProof}
         />
       )}
+
+      {/* Audio Voice Capsule Memory Modal */}
+      <VoiceCapsuleModal
+        proof={voiceModalProof}
+        isOpen={voiceModalOpen}
+        onClose={() => {
+          setVoiceModalOpen(false)
+          setVoiceModalProof(null)
+        }}
+        onCapsuleUpdated={() => setCapsuleVersion((v) => v + 1)}
+      />
     </div>
   )
 }
