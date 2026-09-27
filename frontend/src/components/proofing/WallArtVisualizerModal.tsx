@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { ProofFrame } from './ProofingGallery'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/Button'
@@ -19,11 +19,46 @@ export function WallArtVisualizerModal({
   proofs,
   initialProof,
 }: Props) {
-  const [selectedProof, setSelectedProof] = useState<ProofFrame>(initialProof || proofs[0])
+  const [selectedProof, setSelectedProof] = useState<ProofFrame>(() => initialProof || proofs[0])
   const [frameStyle, setFrameStyle] = useState<FrameStyle>('gold')
   const [frameSize, setFrameSize] = useState<FrameSize>('medium')
   const [hasMatting, setHasMatting] = useState<boolean>(true)
   const [orderSent, setOrderSent] = useState<boolean>(false)
+
+  // Synchronize when initialProof or modal opens
+  useEffect(() => {
+    if (initialProof) {
+      setSelectedProof(initialProof)
+    } else if (proofs.length > 0) {
+      setSelectedProof(proofs[0])
+    }
+  }, [initialProof, isOpen, proofs])
+
+  const currentIndex = proofs.findIndex((p) => p.id === selectedProof.id)
+
+  const handleNextPhoto = useCallback(() => {
+    if (proofs.length === 0) return
+    const nextIdx = (currentIndex + 1) % proofs.length
+    setSelectedProof(proofs[nextIdx])
+  }, [currentIndex, proofs])
+
+  const handlePrevPhoto = useCallback(() => {
+    if (proofs.length === 0) return
+    const prevIdx = (currentIndex - 1 + proofs.length) % proofs.length
+    setSelectedProof(proofs[prevIdx])
+  }, [currentIndex, proofs])
+
+  // Keyboard arrow navigation
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') handleNextPhoto()
+      if (e.key === 'ArrowLeft') handlePrevPhoto()
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleNextPhoto, handlePrevPhoto, isOpen, onClose])
 
   if (!isOpen) return null
 
@@ -64,6 +99,26 @@ export function WallArtVisualizerModal({
 
           {/* Wall Hanging Stage */}
           <div className="relative z-10 flex-1 flex items-center justify-center p-8 pt-16">
+            {/* Previous Photo Button on Wall */}
+            <button
+              type="button"
+              onClick={handlePrevPhoto}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-ink/75 text-cream backdrop-blur-md border border-white/20 hover:bg-brass hover:text-ink hover:scale-105 transition-all shadow-xl active:scale-95"
+              title="Previous photo (← key)"
+            >
+              <span className="text-base font-bold">←</span>
+            </button>
+
+            {/* Next Photo Button on Wall */}
+            <button
+              type="button"
+              onClick={handleNextPhoto}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-ink/75 text-cream backdrop-blur-md border border-white/20 hover:bg-brass hover:text-ink hover:scale-105 transition-all shadow-xl active:scale-95"
+              title="Next photo (→ key)"
+            >
+              <span className="text-base font-bold">→</span>
+            </button>
+
             <div
               className={cn(
                 'relative transition-all duration-500 ease-out flex items-center justify-center',
@@ -108,25 +163,56 @@ export function WallArtVisualizerModal({
           </div>
 
           {/* Thumbnail Photo Selector Strip at bottom */}
-          <div className="relative z-15 bg-[#17171A]/90 px-4 py-2.5 backdrop-blur-md flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <span className="text-[9px] uppercase tracking-widest text-brass whitespace-nowrap">
-              Switch Photo:
-            </span>
-            {proofs.map((p) => (
+          <div className="relative z-30 bg-[#17171A]/95 px-4 py-3 backdrop-blur-md border-t border-white/10 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-widest text-brass font-bold whitespace-nowrap">
+                Switch Proof:
+              </span>
+              <span className="text-[10px] text-cream/70 font-mono">
+                ({currentIndex + 1} of {proofs.length})
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 overflow-x-auto py-1">
+              {proofs.map((p, idx) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setSelectedProof(p)}
+                  className={cn(
+                    'h-12 w-10 overflow-hidden rounded border transition-all flex-shrink-0 relative group cursor-pointer',
+                    selectedProof.id === p.id
+                      ? 'border-brass ring-2 ring-brass scale-110 shadow-lg'
+                      : 'border-white/30 opacity-60 hover:opacity-100 hover:border-white/70',
+                  )}
+                  title={`${p.title} (${p.code})`}
+                >
+                  <img src={p.image} alt={p.title} className="h-full w-full object-cover" />
+                  <span className="absolute bottom-0 inset-x-0 bg-black/75 text-[8px] text-center font-mono text-cream truncate">
+                    #{idx + 1}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="hidden sm:flex items-center gap-1.5">
               <button
-                key={p.id}
                 type="button"
-                onClick={() => setSelectedProof(p)}
-                className={cn(
-                  'h-11 w-9 overflow-hidden rounded border transition flex-shrink-0',
-                  selectedProof.id === p.id
-                    ? 'border-brass ring-1 ring-brass scale-105'
-                    : 'border-white/20 opacity-60 hover:opacity-100',
-                )}
+                onClick={handlePrevPhoto}
+                className="rounded border border-white/20 px-2.5 py-1 text-xs text-cream hover:border-brass hover:text-brass transition"
+                title="Previous"
               >
-                <img src={p.image} alt={p.title} className="h-full w-full object-cover" />
+                ←
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={handleNextPhoto}
+                className="rounded border border-white/20 px-2.5 py-1 text-xs text-cream hover:border-brass hover:text-brass transition"
+                title="Next"
+              >
+                →
+              </button>
+            </div>
           </div>
         </div>
 
