@@ -9,6 +9,7 @@ import { PackageCard } from '@/components/packages/PackageCard'
 import { PhotographerCard } from '@/components/photographers/PhotographerCard'
 import { Skeleton } from '@/components/ui/States'
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider'
+import { TiltCard } from '@/components/ui/TiltCard'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -139,18 +140,19 @@ function HomePage() {
         </Reveal>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {SPECIALTIES.map((specialty) => (
-            <Link
-              key={specialty.name}
-              to="/packages"
-              className="group relative aspect-[3/4] overflow-hidden border border-line bg-paper transition hover:border-ink"
-            >
-              <Photo src={specialty.image} alt={specialty.name} className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent opacity-80 transition group-hover:opacity-90" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-                <h3 className="font-display text-lg text-cream md:text-xl">{specialty.name}</h3>
-                <p className="mt-1 text-xs text-cream/70">{specialty.description}</p>
-              </div>
-            </Link>
+            <TiltCard key={specialty.name} maxTilt={9} scale={1.03}>
+              <Link
+                to="/packages"
+                className="group relative block aspect-[3/4] overflow-hidden border border-line bg-paper transition hover:border-ink h-full"
+              >
+                <Photo src={specialty.image} alt={specialty.name} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent opacity-80 transition group-hover:opacity-90" />
+                <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
+                  <h3 className="font-display text-lg text-cream md:text-xl">{specialty.name}</h3>
+                  <p className="mt-1 text-xs text-cream/70">{specialty.description}</p>
+                </div>
+              </Link>
+            </TiltCard>
           ))}
         </div>
       </section>

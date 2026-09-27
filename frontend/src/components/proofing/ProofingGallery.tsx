@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/Button'
+import { TiltCard } from '@/components/ui/TiltCard'
 import { CinematicSlideshow } from './CinematicSlideshow'
 import { WallArtVisualizerModal } from './WallArtVisualizerModal'
 
@@ -222,68 +223,72 @@ export function ProofingGallery() {
           const isFav = favorites.includes(proof.id)
           const hasNote = Boolean(notes[proof.id])
           return (
-            <div
+            <TiltCard
               key={proof.id}
               onClick={() => setSelectedProof(proof)}
-              className="group relative cursor-pointer overflow-hidden rounded border border-line bg-cream transition hover:border-ink/60 hover:shadow-md select-none"
+              maxTilt={8}
+              scale={1.02}
+              className="cursor-pointer select-none"
             >
-              {/* Image & Watermark Container */}
-              <div className="relative aspect-[4/5] w-full overflow-hidden bg-ink/5">
-                <img
-                  src={proof.image}
-                  alt={proof.title}
-                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                  loading="lazy"
-                />
+              <div className="group relative h-full overflow-hidden rounded border border-line bg-cream transition-shadow duration-300 hover:border-ink/60 hover:shadow-xl">
+                {/* Image & Watermark Container */}
+                <div className="relative aspect-[4/5] w-full overflow-hidden bg-ink/5">
+                  <img
+                    src={proof.image}
+                    alt={proof.title}
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    loading="lazy"
+                  />
 
-                {/* Diagonal Semi-Transparent Studio Watermark */}
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-35 transition group-hover:opacity-20">
-                  <span className="rotate-[-35deg] whitespace-nowrap font-display text-xs uppercase tracking-[0.3em] text-cream drop-shadow-sm border border-cream/30 px-3 py-1 bg-ink/30 backdrop-blur-[1px]">
-                    ✦ NORTHLIGHT PROOF · DO NOT REPRODUCE
-                  </span>
-                </div>
-
-                {/* Heart Button */}
-                <button
-                  type="button"
-                  onClick={(e) => toggleFavorite(proof.id, e)}
-                  className={cn(
-                    'absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md transition shadow-sm',
-                    isFav
-                      ? 'bg-rose-600 text-white'
-                      : 'bg-ink/60 text-cream hover:bg-ink/90',
-                  )}
-                  title={isFav ? 'Remove from favorites' : 'Heart for retouching'}
-                >
-                  <span className="text-sm">{isFav ? '♥' : '♡'}</span>
-                </button>
-
-                {/* Code Tag */}
-                <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-ink/80 px-2 py-0.5 text-[9px] uppercase tracking-wider text-cream font-mono">
-                  {proof.code}
-                </div>
-              </div>
-
-              {/* Card Meta */}
-              <div className="p-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-wider text-brass font-semibold">
-                    {proof.category}
-                  </span>
-                  {hasNote ? (
-                    <span className="text-[9px] uppercase tracking-wider text-mute bg-paper px-1.5 py-0.5 rounded border border-line">
-                      📝 Note Added
+                  {/* Diagonal Semi-Transparent Studio Watermark */}
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-35 transition group-hover:opacity-20">
+                    <span className="rotate-[-35deg] whitespace-nowrap font-display text-xs uppercase tracking-[0.3em] text-cream drop-shadow-sm border border-cream/30 px-3 py-1 bg-ink/30 backdrop-blur-[1px]">
+                      ✦ NORTHLIGHT PROOF · DO NOT REPRODUCE
                     </span>
-                  ) : null}
+                  </div>
+
+                  {/* Heart Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => toggleFavorite(proof.id, e)}
+                    className={cn(
+                      'absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md transition shadow-sm z-30',
+                      isFav
+                        ? 'bg-rose-600 text-white'
+                        : 'bg-ink/60 text-cream hover:bg-ink/90',
+                    )}
+                    title={isFav ? 'Remove from favorites' : 'Heart for retouching'}
+                  >
+                    <span className="text-sm">{isFav ? '♥' : '♡'}</span>
+                  </button>
+
+                  {/* Code Tag */}
+                  <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-ink/80 px-2 py-0.5 text-[9px] uppercase tracking-wider text-cream font-mono">
+                    {proof.code}
+                  </div>
                 </div>
-                <h4 className="mt-1 font-display text-sm font-semibold text-ink line-clamp-1">
-                  {proof.title}
-                </h4>
-                <p className="mt-1 text-[10px] text-mute font-mono truncate">
-                  {proof.exif.split('·')[0]}
-                </p>
+
+                {/* Card Meta */}
+                <div className="p-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-wider text-brass font-semibold">
+                      {proof.category}
+                    </span>
+                    {hasNote ? (
+                      <span className="text-[9px] uppercase tracking-wider text-mute bg-paper px-1.5 py-0.5 rounded border border-line">
+                        📝 Note Added
+                      </span>
+                    ) : null}
+                  </div>
+                  <h4 className="mt-1 font-display text-sm font-semibold text-ink line-clamp-1">
+                    {proof.title}
+                  </h4>
+                  <p className="mt-1 text-[10px] text-mute font-mono truncate">
+                    {proof.exif.split('·')[0]}
+                  </p>
+                </div>
               </div>
-            </div>
+            </TiltCard>
           )
         })}
       </div>
