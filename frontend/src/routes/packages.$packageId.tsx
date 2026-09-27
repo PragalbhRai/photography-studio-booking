@@ -5,6 +5,7 @@ import { formatDuration, formatPrice } from '@/lib/format'
 import { Button } from '@/components/ui/Button'
 import { Photo } from '@/components/ui/Photo'
 import { PageState, Skeleton } from '@/components/ui/States'
+import { ClientReviewsSection } from '@/components/reviews/ClientReviewsSection'
 
 export const Route = createFileRoute('/packages/$packageId')({
   component: PackageDetailPage,
@@ -49,28 +50,37 @@ function PackageDetailPage() {
   const pkg = query.data
 
   return (
-    <div className="mx-auto grid max-w-site items-start gap-10 px-5 py-16 md:grid-cols-2 md:px-8 md:py-24">
-      <div className="img-zoom aspect-[4/5]">
-        <Photo src={pkg.image_url} alt={pkg.name} />
+    <div className="mx-auto max-w-site px-5 py-16 md:px-8 md:py-24">
+      <div className="grid items-start gap-10 md:grid-cols-2">
+        <div className="img-zoom aspect-[4/5]">
+          <Photo src={pkg.image_url} alt={pkg.name} />
+        </div>
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-brass">{pkg.category}</p>
+          <h1 className="mt-3 font-display text-5xl md:text-6xl">{pkg.name}</h1>
+          <p className="mt-6 text-lg leading-relaxed text-mute">{pkg.description}</p>
+          <dl className="mt-10 grid grid-cols-2 gap-6 border-y border-line py-8">
+            <div>
+              <dt className="text-[11px] uppercase tracking-[0.18em] text-mute">Investment</dt>
+              <dd className="mt-2 font-display text-4xl">{formatPrice(pkg.price)}</dd>
+            </div>
+            <div>
+              <dt className="text-[11px] uppercase tracking-[0.18em] text-mute">Duration</dt>
+              <dd className="mt-2 font-display text-4xl">{formatDuration(pkg.duration_minutes)}</dd>
+            </div>
+          </dl>
+          <Link to="/book" search={{ packageId: pkg.id }} className="mt-10 inline-block">
+            <Button size="lg">Book this package</Button>
+          </Link>
+        </div>
       </div>
-      <div>
-        <p className="text-[11px] uppercase tracking-[0.22em] text-brass">{pkg.category}</p>
-        <h1 className="mt-3 font-display text-5xl md:text-6xl">{pkg.name}</h1>
-        <p className="mt-6 text-lg leading-relaxed text-mute">{pkg.description}</p>
-        <dl className="mt-10 grid grid-cols-2 gap-6 border-y border-line py-8">
-          <div>
-            <dt className="text-[11px] uppercase tracking-[0.18em] text-mute">Investment</dt>
-            <dd className="mt-2 font-display text-4xl">{formatPrice(pkg.price)}</dd>
-          </div>
-          <div>
-            <dt className="text-[11px] uppercase tracking-[0.18em] text-mute">Duration</dt>
-            <dd className="mt-2 font-display text-4xl">{formatDuration(pkg.duration_minutes)}</dd>
-          </div>
-        </dl>
-        <Link to="/book" search={{ packageId: pkg.id }} className="mt-10 inline-block">
-          <Button size="lg">Book this package</Button>
-        </Link>
-      </div>
+
+      {/* Verified Client Reviews for this Offering */}
+      <ClientReviewsSection
+        categoryFilter={pkg.category}
+        title={`Verified Reviews · ${pkg.name}`}
+        subtitle={`Client testimonials and impressions from patrons who commissioned our ${pkg.name} sitting.`}
+      />
     </div>
   )
 }

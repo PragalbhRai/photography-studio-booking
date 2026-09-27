@@ -15,6 +15,7 @@ import { generateGoogleCalendarUrl, downloadIcsFile } from '@/lib/calendar'
 import { SITTING_ADDONS } from '@/lib/addons'
 import { MOODBOARD_PRESETS } from '@/lib/moodboards'
 import { ShootPrepGuide } from '@/components/dashboard/ShootPrepGuide'
+import { ProofingGallery } from '@/components/proofing/ProofingGallery'
 import { useAuth } from '@/lib/auth'
 import type { Booking } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
@@ -88,6 +89,7 @@ function CustomerDashboard() {
           {nextUpcoming ? <ShootPrepGuide booking={nextUpcoming} /> : null}
           <Section title="Upcoming" bookings={upcoming} onCancel={(id) => cancelMutation.mutate(id)} pendingId={cancelMutation.isPending ? cancelMutation.variables : null} error={cancelMutation.isError ? getErrorMessage(cancelMutation.error) : null} isUpcoming />
           <Section title="Past" bookings={past} />
+          <ProofingGallery />
         </>
       )}
     </div>

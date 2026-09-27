@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button'
 import { Photo } from '@/components/ui/Photo'
 import { PageState, Skeleton } from '@/components/ui/States'
 import { PackageCard } from '@/components/packages/PackageCard'
+import { KitbagShowcase } from '@/components/photographers/KitbagShowcase'
+import { ClientReviewsSection } from '@/components/reviews/ClientReviewsSection'
 
 export const Route = createFileRoute('/photographers/$photographerId')({
   component: PhotographerDetailPage,
@@ -99,6 +101,16 @@ function PhotographerDetailPage() {
             </div>
           )}
         </section>
+
+        {/* Optical Equipment & Camera Gear Showcase */}
+        <KitbagShowcase photographerId={p.id} photographerName={p.full_name} />
+
+        {/* Verified Client Testimonials */}
+        <ClientReviewsSection
+          photographerId={p.id}
+          title={`Verified Commendations for ${p.full_name.split(' ')[0]}`}
+          subtitle={`Direct reviews from private patrons and couples photographed by ${p.full_name}.`}
+        />
       </div>
     </div>
   )
