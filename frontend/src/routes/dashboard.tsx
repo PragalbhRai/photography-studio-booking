@@ -18,6 +18,7 @@ import { ShootPrepGuide } from '@/components/dashboard/ShootPrepGuide'
 import { ProofingGallery } from '@/components/proofing/ProofingGallery'
 import { LeaveReviewModal } from '@/components/reviews/LeaveReviewModal'
 import { LegalAgreementsSection } from '@/components/contracts/LegalAgreementsSection'
+import { ProductionCallSheetModal } from '@/components/contracts/ProductionCallSheetModal'
 import { useAuth } from '@/lib/auth'
 import type { Booking } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
@@ -42,6 +43,8 @@ function CustomerDashboard() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [reviewingBooking, setReviewingBooking] = useState<Booking | null>(null)
+  const [callSheetBooking, setCallSheetBooking] = useState<Booking | null>(null)
+  const [callSheetGenericOpen, setCallSheetGenericOpen] = useState(false)
   const query = useQuery({
     queryKey: queryKeys.myBookings,
     queryFn: bookingsApi.mine,
@@ -66,9 +69,19 @@ function CustomerDashboard() {
           <h1 className="mt-2 font-display text-5xl">Hello, {user?.full_name ? user.full_name.split(' ')[0] : 'Client'}</h1>
           <p className="mt-3 text-mute">Your sittings with Northlight.</p>
         </div>
-        <Link to="/book">
-          <Button size="lg">Book a new sitting</Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            size="lg"
+            variant="secondary"
+            onClick={() => setCallSheetGenericOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <span>🤖</span> Generate AI Call Sheet
+          </Button>
+          <Link to="/book">
+            <Button size="lg">Book a new sitting</Button>
+          </Link>
+        </div>
       </div>
 
       {query.isLoading ? (
@@ -99,11 +112,13 @@ function CustomerDashboard() {
             error={cancelMutation.isError ? getErrorMessage(cancelMutation.error) : null}
             isUpcoming
             onReview={(b) => setReviewingBooking(b)}
+            onCallSheet={(b) => setCallSheetBooking(b)}
           />
           <Section
             title="Past"
             bookings={past}
             onReview={(b) => setReviewingBooking(b)}
+            onCallSheet={(b) => setCallSheetBooking(b)}
           />
           <ProofingGallery />
           <LegalAgreementsSection userName={user?.full_name} />
@@ -119,6 +134,19 @@ function CustomerDashboard() {
         packageName={reviewingBooking?.package_name ?? 'Studio Sitting'}
         packageId={reviewingBooking?.package_id ?? 'pkg-1'}
       />
+
+      {/* AI Production Call Sheet Modal */}
+      <ProductionCallSheetModal
+        isOpen={Boolean(callSheetBooking) || callSheetGenericOpen}
+        onClose={() => {
+          setCallSheetBooking(null)
+          setCallSheetGenericOpen(false)
+        }}
+        sittingId={callSheetBooking?.id || 'NL-SIT-2026-081'}
+        clientName={user?.full_name || 'Pooja & Karan Malhotra'}
+        packageName={callSheetBooking?.package_name || 'Royal Palace Wedding Masterwork'}
+        photographerName={callSheetBooking?.photographer_name || 'Aarav Sharma'}
+      />
     </div>
   )
 }
@@ -131,6 +159,7 @@ function Section({
   error,
   isUpcoming,
   onReview,
+  onCallSheet,
 }: {
   title: string
   bookings: Booking[]
@@ -139,6 +168,7 @@ function Section({
   error?: string | null
   isUpcoming?: boolean
   onReview?: (booking: Booking) => void
+  onCallSheet?: (booking: Booking) => void
 }) {
   return (
     <section className="mt-12">
@@ -240,6 +270,14 @@ function Section({
                     </button>
                     <button
                       type="button"
+                      onClick={() => onCallSheet?.(booking)}
+                      className="inline-flex items-center gap-1.5 rounded border border-line bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-cream transition"
+                      title="View or Print AI Production Call Sheet"
+                    >
+                      <span>🎬</span> Call Sheet
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => onReview?.(booking)}
                       className="inline-flex items-center gap-1.5 rounded border border-brass/60 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition"
                       title="Rate and review your photographer"
@@ -248,14 +286,24 @@ function Section({
                     </button>
                   </>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => onReview?.(booking)}
-                    className="inline-flex items-center gap-1.5 rounded border border-brass/60 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition"
-                    title="Rate and review your photographer"
-                  >
-                    <span>★</span> Review Sitting
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onCallSheet?.(booking)}
+                      className="inline-flex items-center gap-1.5 rounded border border-line bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-cream transition"
+                      title="View or Print AI Production Call Sheet"
+                    >
+                      <span>🎬</span> Call Sheet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onReview?.(booking)}
+                      className="inline-flex items-center gap-1.5 rounded border border-brass/60 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition"
+                      title="Rate and review your photographer"
+                    >
+                      <span>★</span> Review Sitting
+                    </button>
+                  </>
                 )}
 
                 {onCancel && booking.status === 'confirmed' ? (
