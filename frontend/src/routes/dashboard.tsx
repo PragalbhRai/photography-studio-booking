@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { bookingsApi, queryKeys } from '@/lib/endpoints'
 import { requireRole } from '@/lib/guards'
 import { getErrorMessage } from '@/lib/errors'
@@ -32,7 +32,12 @@ function splitBookings(bookings: Booking[]) {
 function CustomerDashboard() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const query = useQuery({ queryKey: queryKeys.myBookings, queryFn: bookingsApi.mine })
+  const query = useQuery({
+    queryKey: queryKeys.myBookings,
+    queryFn: bookingsApi.mine,
+    refetchOnMount: 'always',
+    staleTime: 0,
+  })
   const cancelMutation = useMutation({
     mutationFn: (id: string) => bookingsApi.cancel(id),
     onSuccess: () => {
@@ -44,9 +49,16 @@ function CustomerDashboard() {
 
   return (
     <div className="mx-auto max-w-site px-5 py-16 md:px-8">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-brass">Client</p>
-      <h1 className="mt-2 font-display text-5xl">Hello, {user?.full_name ? user.full_name.split(' ')[0] : 'Client'}</h1>
-      <p className="mt-3 text-mute">Your sittings with Northlight.</p>
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-brass">Client</p>
+          <h1 className="mt-2 font-display text-5xl">Hello, {user?.full_name ? user.full_name.split(' ')[0] : 'Client'}</h1>
+          <p className="mt-3 text-mute">Your sittings with Northlight.</p>
+        </div>
+        <Link to="/book">
+          <Button size="lg">Book a new sitting</Button>
+        </Link>
+      </div>
 
       {query.isLoading ? (
         <div className="mt-10 space-y-4">
@@ -67,7 +79,7 @@ function CustomerDashboard() {
         </div>
       ) : (
         <>
-          <Section title="Upcoming" bookings={upcoming} onCancel={(id) => cancelMutation.mutate(id)} pendingId={cancelMutation.isPending ? cancelMutation.variables : null} error={cancelMutation.isError ? getErrorMessage(cancelMutation.error) : null} />
+          <Section title="Upcoming" bookings={upcoming} onCancel={(id) => cancelMutation.mutate(id)} pendingId={cancelMutation.isPending ? cancelMutation.variables : null} error={cancelMutation.isError ? getErrorMessage(cancelMutation.error) : null} isUpcoming />
           <Section title="Past" bookings={past} />
         </>
       )}
@@ -81,19 +93,33 @@ function Section({
   onCancel,
   pendingId,
   error,
+  isUpcoming,
 }: {
   title: string
   bookings: Booking[]
   onCancel?: (id: string) => void
   pendingId?: string | null
   error?: string | null
+  isUpcoming?: boolean
 }) {
   return (
     <section className="mt-12">
       <h2 className="font-display text-3xl">{title}</h2>
       {error ? <p className="mt-3 text-sm text-red-800">{error}</p> : null}
       {!Array.isArray(bookings) || bookings.length === 0 ? (
-        <p className="mt-4 text-sm text-mute">Nothing available yet.</p>
+        isUpcoming ? (
+          <div className="mt-6 border border-line bg-cream p-8 text-center sm:text-left sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="font-display text-2xl">No upcoming reservations yet</p>
+              <p className="mt-1 text-sm text-mute">Reserve your sitting with one of our master photographers today.</p>
+            </div>
+            <Link to="/book" className="mt-4 inline-block sm:mt-0">
+              <Button size="sm">Choose package & book</Button>
+            </Link>
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-mute">No past sittings completed yet.</p>
+        )
       ) : (
         <ul className="mt-6 divide-y divide-line border border-line bg-cream">
           {bookings.map((booking) => (

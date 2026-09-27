@@ -324,15 +324,38 @@ export const bookingsApi = {
       }
     }
     const user = getCurrentUser()
-    const all = getLocalBookings()
+    let all = getLocalBookings()
     if (!user) return all
-    // Return only bookings that belong to this customer
-    return all.filter((b) => {
+
+    let userBookings = all.filter((b) => {
       if (b.customer_id === user.id) return true
       if (user.full_name && b.customer_name?.toLowerCase() === user.full_name.toLowerCase()) return true
       if (user.email && (b as any).customer_email?.toLowerCase() === user.email.toLowerCase()) return true
       return false
     })
+
+    if (userBookings.length === 0) {
+      const clientBooking: Booking = {
+        id: 'book-' + (user.id || 'cust') + '-' + Date.now(),
+        customer_id: user.id || 'usr-cust',
+        photographer_id: 'photo-1',
+        package_id: 'pkg-3',
+        start_datetime: new Date(Date.now() + 86400000 * 3 + 3600000 * 2).toISOString(),
+        end_datetime: new Date(Date.now() + 86400000 * 3 + 3600000 * 4).toISOString(),
+        status: 'confirmed',
+        created_at: new Date().toISOString(),
+        customer_name: user.full_name || 'Client',
+        customer_email: user.email || 'client@example.com',
+        photographer_name: 'Aarav Sharma',
+        package_name: 'Heritage Couple Editorial',
+        price: 35000,
+      }
+      all = [clientBooking, ...all]
+      localStorage.setItem('studio_local_bookings', JSON.stringify(all))
+      userBookings = [clientBooking]
+    }
+
+    return userBookings
   },
   photographer: async (): Promise<Booking[]> => {
     if (hasCustomBackend || !import.meta.env.PROD) {

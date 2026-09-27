@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import {
@@ -38,6 +38,7 @@ function BookPage() {
   const search = Route.useSearch()
   const navigate = useNavigate({ from: '/book' })
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [date, setDate] = useState<string | null>(null)
   const [slot, setSlot] = useState<AvailabilitySlot | null>(null)
   const [confirmed, setConfirmed] = useState(false)
@@ -88,7 +89,8 @@ function BookPage() {
         package_id: packageId!,
         start_datetime: slot!.start_datetime,
       }),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.myBookings })
       void navigate({ to: '/dashboard' })
     },
     onError: (error) => {
