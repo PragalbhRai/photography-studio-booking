@@ -69,6 +69,7 @@ export interface Booking {
   customer_email?: string | null
   photographer_name?: string | null
   package_name?: string | null
+  price?: number
 }
 
 export interface WorkingHour {

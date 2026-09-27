@@ -45,7 +45,7 @@ function CustomerDashboard() {
   return (
     <div className="mx-auto max-w-site px-5 py-16 md:px-8">
       <p className="text-[11px] uppercase tracking-[0.22em] text-brass">Client</p>
-      <h1 className="mt-2 font-display text-5xl">Hello, {user?.full_name.split(' ')[0]}</h1>
+      <h1 className="mt-2 font-display text-5xl">Hello, {user?.full_name ? user.full_name.split(' ')[0] : 'Client'}</h1>
       <p className="mt-3 text-mute">Your sittings with Northlight.</p>
 
       {query.isLoading ? (

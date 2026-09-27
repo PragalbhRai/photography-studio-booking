@@ -174,14 +174,18 @@ export const photographersApi = {
   create: async (
     data: PhotographerCreatePayload,
   ): Promise<{ user: User; photographer_profile_id: string }> => {
-    try {
-      const response = await apiClient.post<{ user: User; photographer_profile_id: string }>(
-        '/photographers',
-        data,
-      )
-      if (response.data) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.post<{ user: User; photographer_profile_id: string }>(
+          '/photographers',
+          data,
+        )
+        if (isValidObject(response.data) && (response.data as any).photographer_profile_id) {
+          return response.data
+        }
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const newId = 'photo-' + Date.now()
     const user: User = {
@@ -231,7 +235,17 @@ export const availabilityApi = {
 function getCurrentUser(): User | null {
   try {
     const raw = localStorage.getItem('photography_studio_user')
-    return raw ? (JSON.parse(raw) as User) : null
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      typeof parsed.email === 'string' &&
+      typeof parsed.role === 'string'
+    ) {
+      return parsed as User
+    }
+    return null
   } catch {
     return null
   }
@@ -240,11 +254,15 @@ function getCurrentUser(): User | null {
 function getCurrentPhotographerId(): string {
   const user = getCurrentUser()
   if (!user) return 'photo-1'
+  const userFullName = (typeof user.full_name === 'string' ? user.full_name : '').toLowerCase().trim()
+  const userEmail = (typeof user.email === 'string' ? user.email : '').toLowerCase().trim()
   const photog = DEMO_PHOTOGRAPHERS.find(
     (p) =>
       p.id === user.id ||
-      p.full_name.toLowerCase() === user.full_name.toLowerCase() ||
-      user.email.toLowerCase().includes(p.full_name.split(' ')[0].toLowerCase()),
+      (userFullName && p.full_name.toLowerCase() === userFullName) ||
+      (userFullName && p.full_name.toLowerCase().includes(userFullName)) ||
+      (userEmail && p.full_name.toLowerCase().includes(userEmail.split('@')[0])) ||
+      (userEmail && userEmail.includes(p.full_name.split(' ')[0].toLowerCase())),
   )
   return photog ? photog.id : 'photo-1'
 }
@@ -254,7 +272,8 @@ function getPhotographerWorkingHours(photogId: string): WorkingHour[] {
   const raw = localStorage.getItem(key)
   if (raw) {
     try {
-      return JSON.parse(raw) as WorkingHour[]
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed as WorkingHour[]
     } catch {
       // fallback
     }
@@ -280,7 +299,8 @@ function getPhotographerBlockedPeriods(photogId: string): BlockedPeriod[] {
   const raw = localStorage.getItem(key)
   if (raw) {
     try {
-      return JSON.parse(raw) as BlockedPeriod[]
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed as BlockedPeriod[]
     } catch {
       // fallback
     }
@@ -329,7 +349,7 @@ export const bookingsApi = {
     // Return only bookings assigned to this photographer
     return all.filter((b) => {
       if (b.photographer_id === photogId) return true
-      if (user && b.photographer_name?.toLowerCase() === user.full_name.toLowerCase()) return true
+      if (user && user.full_name && b.photographer_name?.toLowerCase() === user.full_name.toLowerCase()) return true
       return false
     })
   },
@@ -338,11 +358,13 @@ export const bookingsApi = {
     package_id: string
     start_datetime: string
   }): Promise<Booking> => {
-    try {
-      const response = await apiClient.post<Booking>('/bookings', data)
-      if (response.data) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.post<Booking>('/bookings', data)
+        if (isValidObject<Booking>(response.data) && response.data.id) return response.data
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const allPkgs = [...getCustomPackages(), ...DEMO_PACKAGES]
     const pkg = allPkgs.find((p) => p.id === data.package_id) || allPkgs[0]
@@ -368,6 +390,7 @@ export const bookingsApi = {
       customer_email: customerEmail,
       photographer_name: photog.full_name,
       package_name: pkg.name,
+      price: pkg.price,
     }
     saveLocalBooking(newBooking)
     return newBooking
@@ -375,13 +398,17 @@ export const bookingsApi = {
   cancel: async (
     id: string,
   ): Promise<{ booking_id: string; status: string; cancelled_at: string }> => {
-    try {
-      const response = await apiClient.post<{ booking_id: string; status: string; cancelled_at: string }>(
-        `/bookings/${id}/cancel`,
-      )
-      if (response.data) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.post<{ booking_id: string; status: string; cancelled_at: string }>(
+          `/bookings/${id}/cancel`,
+        )
+        if (isValidObject(response.data) && (response.data as any).booking_id) {
+          return response.data
+        }
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const current = getLocalBookings()
     const updated = current.map((b) => (b.id === id ? { ...b, status: 'cancelled_by_customer' } : b))
@@ -408,11 +435,13 @@ export const workingHoursApi = {
     start_time: string
     end_time: string
   }): Promise<WorkingHour> => {
-    try {
-      const response = await apiClient.post<WorkingHour>('/working-hours', data)
-      if (response.data) return response.data
-    } catch {
-      // fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.post<WorkingHour>('/working-hours', data)
+        if (isValidObject<WorkingHour>(response.data) && response.data.id) return response.data
+      } catch {
+        // fallback
+      }
     }
     const photogId = getCurrentPhotographerId()
     const current = getPhotographerWorkingHours(photogId)
@@ -434,10 +463,12 @@ export const workingHoursApi = {
     return item
   },
   remove: async (dayOfWeek: number): Promise<void> => {
-    try {
-      await apiClient.delete(`/working-hours/${dayOfWeek}`)
-    } catch {
-      // fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        await apiClient.delete(`/working-hours/${dayOfWeek}`)
+      } catch {
+        // fallback
+      }
     }
     const photogId = getCurrentPhotographerId()
     const current = getPhotographerWorkingHours(photogId)
@@ -464,11 +495,13 @@ export const blockedPeriodsApi = {
     end_datetime: string
     reason?: string
   }): Promise<BlockedPeriod> => {
-    try {
-      const response = await apiClient.post<BlockedPeriod>('/blocked-periods', data)
-      if (response.data) return response.data
-    } catch {
-      // fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.post<BlockedPeriod>('/blocked-periods', data)
+        if (isValidObject<BlockedPeriod>(response.data) && response.data.id) return response.data
+      } catch {
+        // fallback
+      }
     }
     const photogId = getCurrentPhotographerId()
     const current = getPhotographerBlockedPeriods(photogId)
@@ -484,10 +517,12 @@ export const blockedPeriodsApi = {
     return newPeriod
   },
   remove: async (id: string): Promise<void> => {
-    try {
-      await apiClient.delete(`/blocked-periods/${id}`)
-    } catch {
-      // fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        await apiClient.delete(`/blocked-periods/${id}`)
+      } catch {
+        // fallback
+      }
     }
     const photogId = getCurrentPhotographerId()
     const current = getPhotographerBlockedPeriods(photogId)

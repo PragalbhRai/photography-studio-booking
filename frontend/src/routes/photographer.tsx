@@ -32,7 +32,7 @@ export function PhotographerDashboard() {
   return (
     <div className="mx-auto max-w-site px-5 py-16 md:px-8">
       <p className="text-[11px] uppercase tracking-[0.22em] text-brass">Photographer</p>
-      <h1 className="mt-2 font-display text-5xl">{user?.full_name}</h1>
+      <h1 className="mt-2 font-display text-5xl">{user?.full_name || 'Photographer'}</h1>
       <p className="mt-3 text-mute">Manage hours, blocked time, and your studio schedule.</p>
       <div className="mt-8 flex flex-wrap gap-2">
         {(

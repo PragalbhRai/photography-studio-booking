@@ -94,7 +94,7 @@ function LoginPage() {
             <div className="mt-6 rounded-md border border-line bg-cream p-4">
               <p className="text-xs uppercase tracking-wider text-brass font-semibold">Active Session</p>
               <p className="mt-1 text-sm text-ink">
-                Currently signed in as <span className="font-semibold">{user.full_name}</span> ({user.role})
+                Currently signed in as <span className="font-semibold">{user.full_name || user.email || 'User'}</span> ({user.role || 'client'})
               </p>
               <div className="mt-3 flex gap-2">
                 <Button size="sm" onClick={() => goAfterAuth(user.role)}>
