@@ -6,6 +6,7 @@ import { CinematicSlideshow } from './CinematicSlideshow'
 import { WallArtVisualizerModal } from './WallArtVisualizerModal'
 import { OpticalLoupeInspector } from './OpticalLoupeInspector'
 import { VoiceCapsuleModal } from './VoiceCapsuleModal'
+import { CoffeeTableBookModal } from './CoffeeTableBookModal'
 import {
   getStoredVoiceCapsules,
   studioSoundscape,
@@ -108,6 +109,7 @@ export function ProofingGallery() {
   const [loupeProof, setLoupeProof] = useState<ProofFrame | undefined>(undefined)
   const [voiceModalOpen, setVoiceModalOpen] = useState<boolean>(false)
   const [voiceModalProof, setVoiceModalProof] = useState<ProofFrame | null>(null)
+  const [bookModalOpen, setBookModalOpen] = useState<boolean>(false)
   const [capsuleVersion, setCapsuleVersion] = useState<number>(0)
   const [gallerySoundscapeMood, setGallerySoundscapeMood] = useState<SoundscapeMood>('off')
 
@@ -228,6 +230,13 @@ export function ProofingGallery() {
           <span className="text-[10px] uppercase tracking-[0.2em] text-mute mr-1 font-medium hidden md:inline">
             Studio Tools:
           </span>
+          <button
+            type="button"
+            onClick={() => setBookModalOpen(true)}
+            className="rounded border border-brass/70 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition flex items-center gap-1.5 font-medium shadow-sm"
+          >
+            <span>📖</span> 3D Coffee Table Book
+          </button>
           <button
             type="button"
             onClick={() => setSlideshowOpen(true)}
@@ -557,6 +566,13 @@ export function ProofingGallery() {
           setVoiceModalProof(null)
         }}
         onCapsuleUpdated={() => setCapsuleVersion((v) => v + 1)}
+      />
+
+      {/* 3D Fine-Art Coffee Table Monograph Modal */}
+      <CoffeeTableBookModal
+        isOpen={bookModalOpen}
+        onClose={() => setBookModalOpen(false)}
+        proofs={filteredProofs.length > 0 ? filteredProofs : SAMPLE_PROOFS}
       />
     </div>
   )
