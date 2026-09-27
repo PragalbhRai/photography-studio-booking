@@ -7,9 +7,12 @@ import {
   bookingDurationMinutes,
   formatDate,
   formatDuration,
+  formatPrice,
   formatTime,
   statusLabel,
 } from '@/lib/format'
+import { generateGoogleCalendarUrl, downloadIcsFile } from '@/lib/calendar'
+import { SITTING_ADDONS } from '@/lib/addons'
 import { useAuth } from '@/lib/auth'
 import type { Booking } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
@@ -123,27 +126,74 @@ function Section({
       ) : (
         <ul className="mt-6 divide-y divide-line border border-line bg-cream">
           {bookings.map((booking) => (
-            <li key={booking.id} className="flex flex-col gap-4 px-5 py-5 md:flex-row md:items-center md:justify-between">
+            <li key={booking.id} className="flex flex-col gap-5 px-6 py-6 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="font-display text-2xl">{booking.package_name ?? 'Package'}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-display text-2xl">{booking.package_name ?? 'Package'}</p>
+                  {booking.price ? (
+                    <span className="font-display text-lg font-semibold text-ink">· {formatPrice(booking.price)}</span>
+                  ) : null}
+                </div>
                 <p className="mt-1 text-sm text-mute">
-                  {booking.photographer_name} · {formatDate(booking.start_datetime)} · {formatTime(booking.start_datetime)} ·{' '}
+                  Photographer: <span className="font-medium text-ink">{booking.photographer_name}</span> · {formatDate(booking.start_datetime)} · {formatTime(booking.start_datetime)} ·{' '}
                   {formatDuration(bookingDurationMinutes(booking.start_datetime, booking.end_datetime))}
                 </p>
-                <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-brass">{statusLabel(booking.status)}</p>
+
+                {/* Selected Add-ons badges if any */}
+                {booking.addons && booking.addons.length > 0 ? (
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] uppercase tracking-wider text-mute">Enhancements:</span>
+                    {booking.addons.map((addonId) => {
+                      const addon = SITTING_ADDONS.find((a) => a.id === addonId)
+                      return addon ? (
+                        <span key={addonId} className="rounded border border-line bg-paper px-2 py-0.5 text-[10px] text-ink font-medium">
+                          ✦ {addon.name}
+                        </span>
+                      ) : null
+                    })}
+                  </div>
+                ) : null}
+
+                <p className="mt-2.5 text-[11px] uppercase tracking-[0.16em] text-brass">{statusLabel(booking.status)}</p>
               </div>
-              {onCancel && booking.status === 'confirmed' ? (
-                <Button
-                  variant="danger"
-                  size="sm"
-                  disabled={pendingId === booking.id}
-                  onClick={() => {
-                    if (window.confirm('Cancel this booking?')) onCancel(booking.id)
-                  }}
-                >
-                  Cancel booking
-                </Button>
-              ) : null}
+
+              {/* Action buttons: Calendar sync & Cancel */}
+              <div className="flex flex-wrap items-center gap-2">
+                {booking.status === 'confirmed' ? (
+                  <>
+                    <a
+                      href={generateGoogleCalendarUrl(booking)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded border border-line bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-cream transition"
+                      title="Add to Google Calendar"
+                    >
+                      <span>📅</span> Google Cal
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => downloadIcsFile(booking)}
+                      className="inline-flex items-center gap-1.5 rounded border border-line bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-cream transition"
+                      title="Download Apple / Outlook .ics calendar file"
+                    >
+                      <span>🍏</span> Apple / .ics
+                    </button>
+                  </>
+                ) : null}
+
+                {onCancel && booking.status === 'confirmed' ? (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    disabled={pendingId === booking.id}
+                    onClick={() => {
+                      if (window.confirm('Cancel this booking?')) onCancel(booking.id)
+                    }}
+                  >
+                    Cancel sitting
+                  </Button>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>

@@ -8,6 +8,7 @@ import { Reveal } from '@/components/ui/Reveal'
 import { PackageCard } from '@/components/packages/PackageCard'
 import { PhotographerCard } from '@/components/photographers/PhotographerCard'
 import { Skeleton } from '@/components/ui/States'
+import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -286,6 +287,9 @@ function HomePage() {
           </div>
         </div>
       </section>
+      
+      {/* Before & After Color-Grading Showcase */}
+      <BeforeAfterSlider />
 
       {/* Photographers */}
       <section className="bg-paper py-20 md:py-28">

@@ -40,11 +40,20 @@ export interface PhotographerDetail {
   packages: Package[]
 }
 
+export interface SittingAddon {
+  id: string
+  name: string
+  description: string
+  price: number
+  badge?: string
+}
+
 export interface AvailabilitySlot {
   start_datetime: string
   start_datetime_utc: string
   start_datetime_local: string
   display_time: string
+  is_golden_hour?: boolean
 }
 
 export interface AvailabilityResponse {
@@ -70,6 +79,7 @@ export interface Booking {
   photographer_name?: string | null
   package_name?: string | null
   price?: number
+  addons?: string[]
 }
 
 export interface WorkingHour {

@@ -389,6 +389,8 @@ export function generateMockSlots(dateStr: string): AvailabilitySlot[] {
     '03:30 PM',
     '04:00 PM',
     '04:30 PM',
+    '05:00 PM',
+    '05:30 PM',
   ]
 
   return times.map((t) => {
@@ -397,12 +399,14 @@ export function generateMockSlots(dateStr: string): AvailabilitySlot[] {
     const h = (parseInt(hStr, 10) + (isPm ? 12 : 0)).toString().padStart(2, '0')
     const localIso = `${dateStr}T${h}:${mStr}:00+05:30`
     const dateObj = new Date(localIso)
+    const isGoldenHour = t.startsWith('04:') || t.startsWith('05:')
 
     return {
       start_datetime: dateObj.toISOString(),
       start_datetime_utc: dateObj.toISOString(),
       start_datetime_local: localIso,
       display_time: t,
+      is_golden_hour: isGoldenHour,
     }
   })
 }

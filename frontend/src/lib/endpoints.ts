@@ -380,6 +380,8 @@ export const bookingsApi = {
     photographer_id: string
     package_id: string
     start_datetime: string
+    addons?: string[]
+    price?: number
   }): Promise<Booking> => {
     if (hasCustomBackend || !import.meta.env.PROD) {
       try {
@@ -413,7 +415,8 @@ export const bookingsApi = {
       customer_email: customerEmail,
       photographer_name: photog.full_name,
       package_name: pkg.name,
-      price: pkg.price,
+      price: data.price ?? pkg.price,
+      addons: data.addons ?? [],
     }
     saveLocalBooking(newBooking)
     return newBooking

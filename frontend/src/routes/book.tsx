@@ -17,6 +17,7 @@ import { Calendar } from '@/components/booking/Calendar'
 import { Button } from '@/components/ui/Button'
 import { Photo } from '@/components/ui/Photo'
 import { PageState, Skeleton } from '@/components/ui/States'
+import { SITTING_ADDONS } from '@/lib/addons'
 import { cn } from '@/lib/cn'
 
 type BookSearch = {
@@ -43,6 +44,7 @@ function BookPage() {
   const [slot, setSlot] = useState<AvailabilitySlot | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [conflict, setConflict] = useState(false)
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([])
 
   const packageId = search.packageId
   const photographerId = search.photographerId
@@ -82,12 +84,23 @@ function BookPage() {
     return 4
   }, [packageId, photographerId, date, slot])
 
+  const pkg = selectedPackageQuery.data
+  const photographer = selectedPhotographerQuery.data ?? photographersQuery.data?.find((p) => p.id === photographerId)
+
+  const addonsTotal = selectedAddons.reduce((sum, id) => {
+    const found = SITTING_ADDONS.find((a) => a.id === id)
+    return sum + (found?.price ?? 0)
+  }, 0)
+  const finalPrice = (pkg?.price ?? 0) + addonsTotal
+
   const bookingMutation = useMutation({
     mutationFn: () =>
       bookingsApi.create({
         photographer_id: photographerId!,
         package_id: packageId!,
         start_datetime: slot!.start_datetime,
+        addons: selectedAddons,
+        price: finalPrice,
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.myBookings })
@@ -112,9 +125,6 @@ function BookPage() {
     setConflict(false)
     void navigate({ search: next })
   }
-
-  const pkg = selectedPackageQuery.data
-  const photographer = selectedPhotographerQuery.data ?? photographersQuery.data?.find((p) => p.id === photographerId)
 
   return (
     <div className="mx-auto max-w-site px-5 py-12 md:px-8 md:py-16">
@@ -294,9 +304,19 @@ function BookPage() {
                     key={item.start_datetime}
                     type="button"
                     onClick={() => setSlot(item)}
-                    className="border border-line bg-cream py-3 text-sm transition hover:border-ink"
+                    className={cn(
+                      'relative border py-3 px-2 text-center transition',
+                      item.is_golden_hour
+                        ? 'border-brass/70 bg-amber-50/60 hover:border-ink hover:bg-amber-100/70'
+                        : 'border-line bg-cream hover:border-ink',
+                    )}
                   >
-                    {item.display_time}
+                    <span className="block text-sm text-ink">{item.display_time}</span>
+                    {item.is_golden_hour ? (
+                      <span className="mt-1 inline-block text-[9px] uppercase tracking-wider text-brass font-medium">
+                        ✨ Golden Hour
+                      </span>
+                    ) : null}
                   </button>
                 ))}
               </div>
@@ -305,13 +325,13 @@ function BookPage() {
         ) : null}
 
         {step === 4 && pkg && photographer && slot && date ? (
-          <section className="grid gap-8 md:grid-cols-[1.2fr_0.8fr]">
+          <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="border border-line bg-cream p-8">
               <h2 className="font-display text-3xl">Confirm your sitting</h2>
               <dl className="mt-8 space-y-4 text-sm">
                 <div className="flex justify-between gap-4 border-b border-line pb-3">
                   <dt className="text-mute">Package</dt>
-                  <dd>{pkg.name}</dd>
+                  <dd className="font-medium">{pkg.name}</dd>
                 </div>
                 <div className="flex justify-between gap-4 border-b border-line pb-3">
                   <dt className="text-mute">Photographer</dt>
@@ -323,15 +343,34 @@ function BookPage() {
                 </div>
                 <div className="flex justify-between gap-4 border-b border-line pb-3">
                   <dt className="text-mute">Time</dt>
-                  <dd>{slot.display_time}</dd>
+                  <dd className="flex items-center gap-1.5">
+                    {slot.display_time}
+                    {slot.is_golden_hour ? (
+                      <span className="text-[9px] uppercase tracking-wider bg-brass/15 text-brass px-1.5 py-0.5 rounded font-medium">
+                        ✨ Golden Hour
+                      </span>
+                    ) : null}
+                  </dd>
                 </div>
                 <div className="flex justify-between gap-4 border-b border-line pb-3">
                   <dt className="text-mute">Duration</dt>
                   <dd>{formatDuration(pkg.duration_minutes)}</dd>
                 </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-mute">Price</dt>
-                  <dd className="font-display text-2xl">{formatPrice(pkg.price)}</dd>
+                <div className="flex justify-between gap-4 border-b border-line pb-3">
+                  <dt className="text-mute">Base Package</dt>
+                  <dd>{formatPrice(pkg.price)}</dd>
+                </div>
+                {selectedAddons.length > 0 ? (
+                  <div className="flex justify-between gap-4 border-b border-line pb-3 text-brass">
+                    <dt className="flex items-center gap-1">
+                      <span>Enhancements ({selectedAddons.length})</span>
+                    </dt>
+                    <dd className="font-medium">+{formatPrice(addonsTotal)}</dd>
+                  </div>
+                ) : null}
+                <div className="flex justify-between gap-4 pt-1">
+                  <dt className="text-mute">Total Investment</dt>
+                  <dd className="font-display text-2xl font-semibold text-ink">{formatPrice(finalPrice)}</dd>
                 </div>
               </dl>
               <label className="mt-8 flex items-start gap-3 text-sm">
@@ -362,17 +401,78 @@ function BookPage() {
                 <p className="mt-6 text-sm text-red-800">Bookings can only be created with a customer account.</p>
               ) : (
                 <Button
-                  className="mt-8"
+                  className="mt-8 w-full"
                   size="lg"
                   disabled={!confirmed || bookingMutation.isPending}
                   onClick={() => bookingMutation.mutate()}
                 >
-                  {bookingMutation.isPending ? 'Reserving…' : 'Confirm booking'}
+                  {bookingMutation.isPending ? 'Reserving…' : `Confirm booking · ${formatPrice(finalPrice)}`}
                 </Button>
               )}
               <button type="button" className="mt-4 block text-xs uppercase tracking-[0.16em] text-mute" onClick={() => setSlot(null)}>
                 Choose another time
               </button>
+            </div>
+
+            {/* Right Column: Luxury Add-On Concierge */}
+            <div className="border border-line bg-cream p-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-brass font-medium">Bespoke Enhancements</p>
+                  <h3 className="mt-1 font-display text-2xl">Concierge Add-ons</h3>
+                </div>
+                <span className="rounded bg-paper px-2.5 py-1 text-xs text-mute border border-line">Optional</span>
+              </div>
+              <p className="mt-2 text-xs text-mute leading-relaxed">
+                Elevate your sitting with specialized equipment, styling artists, or expedited delivery.
+              </p>
+
+              <div className="mt-6 space-y-3">
+                {SITTING_ADDONS.map((addon) => {
+                  const isSelected = selectedAddons.includes(addon.id)
+                  return (
+                    <div
+                      key={addon.id}
+                      onClick={() => {
+                        setSelectedAddons((prev) =>
+                          isSelected ? prev.filter((id) => id !== addon.id) : [...prev, addon.id],
+                        )
+                      }}
+                      className={cn(
+                        'cursor-pointer border p-3.5 transition select-none',
+                        isSelected
+                          ? 'border-ink bg-paper shadow-sm'
+                          : 'border-line/70 bg-paper/60 hover:border-ink/50',
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="mt-1 rounded border-line cursor-pointer"
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm text-ink">{addon.name}</p>
+                              {addon.badge ? (
+                                <span className="text-[9px] uppercase tracking-wider bg-brass/15 text-brass px-1.5 py-0.5 rounded font-medium">
+                                  {addon.badge}
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="mt-1 text-xs text-mute leading-snug">{addon.description}</p>
+                          </div>
+                        </div>
+                        <span className="font-display text-sm font-semibold whitespace-nowrap text-ink">
+                          +{formatPrice(addon.price)}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </section>
         ) : null}
