@@ -10,6 +10,7 @@ import { PhotographerCard } from '@/components/photographers/PhotographerCard'
 import { Skeleton } from '@/components/ui/States'
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider'
 import { TiltCard } from '@/components/ui/TiltCard'
+import { Cylindrical3DCarousel } from '@/components/portfolio/Cylindrical3DCarousel'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -198,21 +199,19 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Featured Work */}
-      <section id="work" className="mx-auto max-w-site px-5 py-20 md:px-8 md:py-28">
+      {/* Featured Work / 3D Cylindrical Film Reel */}
+      <section id="work" className="mx-auto max-w-site px-5 py-20 md:px-8 md:py-28 overflow-hidden">
         <Reveal>
-          <div className="mb-10 text-center">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-brass">Portfolio</p>
-            <h2 className="mt-2 font-display text-4xl md:text-5xl">Recent work</h2>
+          <div className="mb-6 text-center">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-brass">Editorial Showcase</p>
+            <h2 className="mt-2 font-display text-4xl md:text-5xl">Recent Masterworks</h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-mute">
+              Curated contact frames captured across royal Rajasthan palaces, heritage estates, and our Ballard Estate daylight studio.
+            </p>
           </div>
         </Reveal>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-12 md:gap-4">
-          {IMAGES.featured.map((item) => (
-            <figure key={item.src} className={`img-zoom ${item.className}`}>
-              <Photo src={item.src} alt={item.alt} />
-            </figure>
-          ))}
-        </div>
+
+        <Cylindrical3DCarousel />
       </section>
 
       {/* Packages */}
