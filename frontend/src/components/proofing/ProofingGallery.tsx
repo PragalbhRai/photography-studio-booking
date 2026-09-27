@@ -175,9 +175,10 @@ export function ProofingGallery() {
         </div>
       </div>
 
-      {/* Filter Tabs & Submission Trigger */}
-      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-1.5 border border-line bg-cream p-1 rounded">
+      {/* Primary Toolbar: Category Filter Tabs & Primary CTA */}
+      <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-line pb-4">
+        {/* Category Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto rounded border border-line bg-cream p-1">
           {[
             { id: 'all', label: `All Proofs (${SAMPLE_PROOFS.length})` },
             { id: 'fav', label: `♥ Favorited (${favorites.length})` },
@@ -190,7 +191,7 @@ export function ProofingGallery() {
               type="button"
               onClick={() => setActiveCategory(cat.id as any)}
               className={cn(
-                'rounded px-3 py-1.5 text-xs uppercase tracking-wider transition',
+                'whitespace-nowrap rounded px-3 py-1.5 text-xs uppercase tracking-wider transition',
                 activeCategory === cat.id
                   ? 'bg-ink text-cream font-semibold shadow-sm'
                   : 'text-mute hover:text-ink hover:bg-paper',
@@ -201,39 +202,32 @@ export function ProofingGallery() {
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setVoiceModalProof(filteredProofs[0] || SAMPLE_PROOFS[0])
-              setVoiceModalOpen(true)
-            }}
-            className="rounded border border-brass/60 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition flex items-center gap-1.5 font-medium shadow-sm"
-          >
-            <span>🎙️</span> Voice Capsules ({allCapsules.length})
-          </button>
-          <div className="flex items-center gap-1.5 rounded border border-line bg-cream px-2.5 py-1 text-xs">
-            <span className="text-[10px] uppercase text-mute">🎵 Score:</span>
-            <select
-              value={gallerySoundscapeMood}
-              onChange={(e) => {
-                const mood = e.target.value as SoundscapeMood
-                setGallerySoundscapeMood(mood)
-                if (mood === 'off') {
-                  studioSoundscape.stop()
-                } else {
-                  studioSoundscape.play(mood)
-                  studioSoundscape.setVolume(0.2)
-                }
-              }}
-              className="bg-transparent text-xs text-ink cursor-pointer focus:outline-none"
+        {/* Primary Action Button */}
+        <div>
+          {submitted ? (
+            <span className="inline-flex items-center gap-1.5 rounded border border-emerald-800/40 bg-emerald-50 px-4 py-2 text-xs font-medium text-emerald-900 shadow-sm">
+              <span>✓</span> Selections Locked & Transmitted
+            </span>
+          ) : (
+            <Button
+              size="sm"
+              onClick={() => setSubmitted(true)}
+              disabled={favorites.length === 0}
+              className="whitespace-nowrap shadow-sm"
             >
-              <option value="off">Off</option>
-              <option value="strings">Palace Strings</option>
-              <option value="piano">Intimate Piano</option>
-              <option value="ethereal">Twilight</option>
-            </select>
-          </div>
+              Lock {favorites.length} Frames for Retouching →
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Secondary Exhibition & Utility Ribbon */}
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded border border-line/70 bg-cream/70 px-4 py-2.5">
+        {/* Left: Interactive Exhibition Tools */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-mute mr-1 font-medium hidden md:inline">
+            Studio Tools:
+          </span>
           <button
             type="button"
             onClick={() => setSlideshowOpen(true)}
@@ -247,7 +241,7 @@ export function ProofingGallery() {
               setVisualizerProof(filteredProofs[0] || SAMPLE_PROOFS[0])
               setVisualizerOpen(true)
             }}
-            className="rounded border border-line bg-cream px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-paper transition flex items-center gap-1.5 shadow-sm"
+            className="rounded border border-line bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink transition flex items-center gap-1.5 shadow-sm"
           >
             <span>🖼️</span> Visualize on Wall
           </button>
@@ -257,23 +251,53 @@ export function ProofingGallery() {
               setLoupeProof(filteredProofs[0] || SAMPLE_PROOFS[0])
               setLoupeOpen(true)
             }}
-            className="rounded border border-line bg-cream px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-paper transition flex items-center gap-1.5 shadow-sm"
+            className="rounded border border-line bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink transition flex items-center gap-1.5 shadow-sm"
           >
             <span>🔬</span> 100MP Loupe
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              setVoiceModalProof(filteredProofs[0] || SAMPLE_PROOFS[0])
+              setVoiceModalOpen(true)
+            }}
+            className="rounded border border-brass/50 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition flex items-center gap-1.5 shadow-sm"
+          >
+            <span>🎙️</span> Voice Capsules ({allCapsules.length})
+          </button>
+        </div>
 
-          {submitted ? (
-            <span className="inline-flex items-center gap-1.5 rounded border border-emerald-800/40 bg-emerald-50 px-4 py-2 text-xs font-medium text-emerald-900">
-              <span>✓</span> Selections Locked & Transmitted to Colorists
-            </span>
-          ) : (
-            <Button
-              size="sm"
-              onClick={() => setSubmitted(true)}
-              disabled={favorites.length === 0}
-            >
-              Lock {favorites.length} Frames for Retouching →
-            </Button>
+        {/* Right: Integrated Studio Soundtrack Player */}
+        <div className="flex items-center gap-2 rounded border border-line bg-paper px-3 py-1.5 text-xs self-start sm:self-auto shadow-sm">
+          <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-brass font-medium">
+            <span>🎵</span>
+            <span>Score:</span>
+          </span>
+          <select
+            value={gallerySoundscapeMood}
+            onChange={(e) => {
+              const mood = e.target.value as SoundscapeMood
+              setGallerySoundscapeMood(mood)
+              if (mood === 'off') {
+                studioSoundscape.stop()
+              } else {
+                studioSoundscape.play(mood)
+                studioSoundscape.setVolume(0.2)
+              }
+            }}
+            className="bg-transparent text-xs text-ink cursor-pointer focus:outline-none font-medium pr-1"
+          >
+            <option value="off">Off (Silent)</option>
+            <option value="strings">Palace Strings</option>
+            <option value="piano">Intimate Piano</option>
+            <option value="ethereal">Twilight</option>
+          </select>
+          {gallerySoundscapeMood !== 'off' && (
+            <div className="flex items-center gap-0.5 h-3 ml-1">
+              <span className="w-0.5 bg-brass animate-pulse h-2" />
+              <span className="w-0.5 bg-brass animate-pulse h-3" />
+              <span className="w-0.5 bg-brass animate-pulse h-1.5" />
+            </div>
           )}
         </div>
       </div>
