@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/Button'
+import { CinematicSlideshow } from './CinematicSlideshow'
+import { WallArtVisualizerModal } from './WallArtVisualizerModal'
 
 export interface ProofFrame {
   id: string
@@ -91,6 +93,9 @@ export function ProofingGallery() {
   const [favorites, setFavorites] = useState<string[]>(['proof-1', 'proof-4', 'proof-8'])
   const [activeCategory, setActiveCategory] = useState<'all' | 'fav' | 'Ceremony' | 'Editorial' | 'Candids'>('all')
   const [selectedProof, setSelectedProof] = useState<ProofFrame | null>(null)
+  const [slideshowOpen, setSlideshowOpen] = useState<boolean>(false)
+  const [visualizerOpen, setVisualizerOpen] = useState<boolean>(false)
+  const [visualizerProof, setVisualizerProof] = useState<ProofFrame | undefined>(undefined)
   const [notes, setNotes] = useState<Record<string, string>>({
     'proof-1': 'Please preserve rich crimson hue in the veil and remove background tourist.',
   })
@@ -176,19 +181,39 @@ export function ProofingGallery() {
           ))}
         </div>
 
-        {submitted ? (
-          <span className="inline-flex items-center gap-1.5 rounded border border-emerald-800/40 bg-emerald-50 px-4 py-2 text-xs font-medium text-emerald-900">
-            <span>✓</span> Selections Locked & Transmitted to Colorists
-          </span>
-        ) : (
-          <Button
-            size="sm"
-            onClick={() => setSubmitted(true)}
-            disabled={favorites.length === 0}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSlideshowOpen(true)}
+            className="rounded border border-brass/60 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition flex items-center gap-1.5 font-medium shadow-sm"
           >
-            Lock {favorites.length} Frames for Retouching →
-          </Button>
-        )}
+            <span>▶</span> Play Slideshow
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setVisualizerProof(filteredProofs[0] || SAMPLE_PROOFS[0])
+              setVisualizerOpen(true)
+            }}
+            className="rounded border border-line bg-cream px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-paper transition flex items-center gap-1.5 shadow-sm"
+          >
+            <span>🖼️</span> Visualize on Wall
+          </button>
+
+          {submitted ? (
+            <span className="inline-flex items-center gap-1.5 rounded border border-emerald-800/40 bg-emerald-50 px-4 py-2 text-xs font-medium text-emerald-900">
+              <span>✓</span> Selections Locked & Transmitted to Colorists
+            </span>
+          ) : (
+            <Button
+              size="sm"
+              onClick={() => setSubmitted(true)}
+              disabled={favorites.length === 0}
+            >
+              Lock {favorites.length} Frames for Retouching →
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Proofing Grid */}
@@ -335,18 +360,28 @@ export function ProofingGallery() {
               </div>
 
               {/* Modal Actions */}
-              <div className="mt-6 pt-4 border-t border-line flex items-center justify-between gap-3">
+              <div className="mt-6 pt-4 border-t border-line flex flex-wrap items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => toggleFavorite(selectedProof.id)}
                   className={cn(
-                    'flex-1 rounded py-2.5 text-xs uppercase tracking-wider transition border text-center font-medium',
+                    'flex-1 min-w-[140px] rounded py-2 text-xs uppercase tracking-wider transition border text-center font-medium',
                     favorites.includes(selectedProof.id)
                       ? 'border-rose-600 bg-rose-50 text-rose-800'
                       : 'border-line hover:border-ink bg-cream text-ink',
                   )}
                 >
-                  {favorites.includes(selectedProof.id) ? '♥ Favorited for Retouching' : '♡ Add to Selections'}
+                  {favorites.includes(selectedProof.id) ? '♥ Favorited' : '♡ Add to Selections'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVisualizerProof(selectedProof)
+                    setVisualizerOpen(true)
+                  }}
+                  className="rounded border border-line bg-cream px-3 py-2 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-paper transition flex items-center gap-1.5"
+                >
+                  <span>🖼️</span> Preview on Wall
                 </button>
                 <Button size="sm" onClick={() => setSelectedProof(null)}>
                   Save & Done
@@ -356,6 +391,23 @@ export function ProofingGallery() {
           </div>
         </div>
       ) : null}
+
+      {/* Cinematic Slideshow Player */}
+      <CinematicSlideshow
+        isOpen={slideshowOpen}
+        onClose={() => setSlideshowOpen(false)}
+        proofs={filteredProofs.length > 0 ? filteredProofs : SAMPLE_PROOFS}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
+      />
+
+      {/* Living Room Fine-Art Wall Art Visualizer */}
+      <WallArtVisualizerModal
+        isOpen={visualizerOpen}
+        onClose={() => setVisualizerOpen(false)}
+        proofs={SAMPLE_PROOFS}
+        initialProof={visualizerProof}
+      />
     </div>
   )
 }
