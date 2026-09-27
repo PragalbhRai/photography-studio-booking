@@ -119,3 +119,34 @@ export const CLIENT_REVIEWS: ClientReview[] = [
     highlightTag: 'Flawless Studio Direction',
   },
 ]
+
+const REVIEWS_STORAGE_KEY = 'northlight_client_reviews'
+
+export function getStoredReviews(): ClientReview[] {
+  try {
+    const raw = localStorage.getItem(REVIEWS_STORAGE_KEY)
+    if (!raw) return CLIENT_REVIEWS
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      // Merge user reviews with default reviews, avoiding duplicates
+      const defaultUnsaved = CLIENT_REVIEWS.filter(
+        (r) => !parsed.some((p: ClientReview) => p.id === r.id),
+      )
+      return [...parsed, ...defaultUnsaved]
+    }
+    return CLIENT_REVIEWS
+  } catch {
+    return CLIENT_REVIEWS
+  }
+}
+
+export function saveReview(newReview: ClientReview): void {
+  try {
+    const current = getStoredReviews()
+    const updated = [newReview, ...current.filter((r) => r.id !== newReview.id)]
+    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new CustomEvent('northlight:review_added', { detail: newReview }))
+  } catch {
+    // Ignore storage errors
+  }
+}

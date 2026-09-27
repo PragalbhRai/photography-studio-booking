@@ -16,10 +16,12 @@ import { SITTING_ADDONS } from '@/lib/addons'
 import { MOODBOARD_PRESETS } from '@/lib/moodboards'
 import { ShootPrepGuide } from '@/components/dashboard/ShootPrepGuide'
 import { ProofingGallery } from '@/components/proofing/ProofingGallery'
+import { LeaveReviewModal } from '@/components/reviews/LeaveReviewModal'
 import { useAuth } from '@/lib/auth'
 import type { Booking } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
 import { PageState, Skeleton } from '@/components/ui/States'
+import { useState } from 'react'
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: ({ context, location }) => requireRole({ context, location, roles: ['customer'] }),
@@ -38,6 +40,7 @@ function splitBookings(bookings: Booking[]) {
 function CustomerDashboard() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const [reviewingBooking, setReviewingBooking] = useState<Booking | null>(null)
   const query = useQuery({
     queryKey: queryKeys.myBookings,
     queryFn: bookingsApi.mine,
@@ -87,11 +90,33 @@ function CustomerDashboard() {
       ) : (
         <>
           {nextUpcoming ? <ShootPrepGuide booking={nextUpcoming} /> : null}
-          <Section title="Upcoming" bookings={upcoming} onCancel={(id) => cancelMutation.mutate(id)} pendingId={cancelMutation.isPending ? cancelMutation.variables : null} error={cancelMutation.isError ? getErrorMessage(cancelMutation.error) : null} isUpcoming />
-          <Section title="Past" bookings={past} />
+          <Section
+            title="Upcoming"
+            bookings={upcoming}
+            onCancel={(id) => cancelMutation.mutate(id)}
+            pendingId={cancelMutation.isPending ? cancelMutation.variables : null}
+            error={cancelMutation.isError ? getErrorMessage(cancelMutation.error) : null}
+            isUpcoming
+            onReview={(b) => setReviewingBooking(b)}
+          />
+          <Section
+            title="Past"
+            bookings={past}
+            onReview={(b) => setReviewingBooking(b)}
+          />
           <ProofingGallery />
         </>
       )}
+
+      {/* Client Review Submission Modal */}
+      <LeaveReviewModal
+        isOpen={Boolean(reviewingBooking)}
+        onClose={() => setReviewingBooking(null)}
+        photographerId={reviewingBooking?.photographer_id ?? 'photo-1'}
+        photographerName={reviewingBooking?.photographer_name ?? 'Studio Artist'}
+        packageName={reviewingBooking?.package_name ?? 'Studio Sitting'}
+        packageId={reviewingBooking?.package_id ?? 'pkg-1'}
+      />
     </div>
   )
 }
@@ -103,6 +128,7 @@ function Section({
   pendingId,
   error,
   isUpcoming,
+  onReview,
 }: {
   title: string
   bookings: Booking[]
@@ -110,6 +136,7 @@ function Section({
   pendingId?: string | null
   error?: string | null
   isUpcoming?: boolean
+  onReview?: (booking: Booking) => void
 }) {
   return (
     <section className="mt-12">
@@ -209,8 +236,25 @@ function Section({
                     >
                       <span>🍏</span> Apple / .ics
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => onReview?.(booking)}
+                      className="inline-flex items-center gap-1.5 rounded border border-brass/60 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition"
+                      title="Rate and review your photographer"
+                    >
+                      <span>★</span> Review Sitting
+                    </button>
                   </>
-                ) : null}
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onReview?.(booking)}
+                    className="inline-flex items-center gap-1.5 rounded border border-brass/60 bg-paper px-3 py-1.5 text-xs uppercase tracking-wider text-brass hover:border-brass hover:bg-brass/10 transition"
+                    title="Rate and review your photographer"
+                  >
+                    <span>★</span> Review Sitting
+                  </button>
+                )}
 
                 {onCancel && booking.status === 'confirmed' ? (
                   <Button

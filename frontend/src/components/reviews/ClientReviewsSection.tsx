@@ -1,9 +1,14 @@
-import { useState } from 'react'
-import { CLIENT_REVIEWS, type ClientReview } from '@/lib/reviews'
+import { useState, useEffect } from 'react'
+import { getStoredReviews, type ClientReview } from '@/lib/reviews'
+import { LeaveReviewModal } from './LeaveReviewModal'
+import { useAuth } from '@/lib/auth'
+import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
 
 interface Props {
   photographerId?: string
+  photographerName?: string
+  packageCategory?: string
   categoryFilter?: string
   title?: string
   subtitle?: string
@@ -11,20 +16,32 @@ interface Props {
 
 export function ClientReviewsSection({
   photographerId,
+  photographerName = 'Lead Studio Artist',
   categoryFilter,
   title = 'Client Commendations & Reviews',
   subtitle = 'Reflections from private patrons, couples, and fashion houses who commissioned Northlight Studio.',
 }: Props) {
+  const { user } = useAuth()
   const [activeCategory, setActiveCategory] = useState<string>(categoryFilter ?? 'all')
+  const [allReviews, setAllReviews] = useState<ClientReview[]>(() => getStoredReviews())
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  let reviews = CLIENT_REVIEWS.filter((r) => {
+  useEffect(() => {
+    const handleNewReview = () => {
+      setAllReviews(getStoredReviews())
+    }
+    window.addEventListener('northlight:review_added', handleNewReview)
+    return () => window.removeEventListener('northlight:review_added', handleNewReview)
+  }, [])
+
+  let reviews = allReviews.filter((r) => {
     if (photographerId && r.photographerId !== photographerId) return false
     if (activeCategory !== 'all' && r.category !== activeCategory) return false
     return true
   })
 
   if (reviews.length === 0) {
-    reviews = CLIENT_REVIEWS.slice(0, 3)
+    reviews = allReviews.slice(0, 3)
   }
 
   return (
@@ -34,39 +51,56 @@ export function ClientReviewsSection({
           <div className="flex items-center gap-2">
             <span className="flex text-brass text-sm tracking-widest">★★★★★</span>
             <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brass">
-              4.98 / 5.0 · 84 Verified Sittings
+              4.98 / 5.0 · {allReviews.length} Verified Sittings
             </span>
           </div>
           <h2 className="mt-2 font-display text-4xl text-ink">{title}</h2>
           <p className="mt-2 max-w-2xl text-sm text-mute leading-relaxed">{subtitle}</p>
         </div>
 
-        {/* Filter categories if not forced by parent */}
-        {!categoryFilter && !photographerId ? (
-          <div className="flex flex-wrap gap-1.5 border border-line bg-cream p-1 rounded">
-            {[
-              { id: 'all', label: 'All Reviews' },
-              { id: 'Weddings & Celebrations', label: 'Weddings' },
-              { id: 'Portraits & Headshots', label: 'Portraits' },
-              { id: 'Fashion & Editorial', label: 'Fashion & Editorial' },
-            ].map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setActiveCategory(cat.id)}
-                className={cn(
-                  'rounded px-3 py-1.5 text-xs uppercase tracking-wider transition',
-                  activeCategory === cat.id
-                    ? 'bg-ink text-cream font-semibold shadow-sm'
-                    : 'text-mute hover:text-ink hover:bg-paper',
-                )}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Write Review Button */}
+          {user ? (
+            <Button size="sm" onClick={() => setIsModalOpen(true)}>
+              ★ Write a Review
+            </Button>
+          ) : null}
+
+          {/* Filter categories if not forced by parent */}
+          {!categoryFilter && !photographerId ? (
+            <div className="flex flex-wrap gap-1.5 border border-line bg-cream p-1 rounded">
+              {[
+                { id: 'all', label: 'All Reviews' },
+                { id: 'Weddings & Celebrations', label: 'Weddings' },
+                { id: 'Portraits & Headshots', label: 'Portraits' },
+                { id: 'Fashion & Editorial', label: 'Fashion & Editorial' },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={cn(
+                    'rounded px-3 py-1.5 text-xs uppercase tracking-wider transition',
+                    activeCategory === cat.id
+                      ? 'bg-ink text-cream font-semibold shadow-sm'
+                      : 'text-mute hover:text-ink hover:bg-paper',
+                  )}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
+
+      <LeaveReviewModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        photographerId={photographerId ?? 'photo-1'}
+        photographerName={photographerName}
+        onReviewSubmitted={() => setAllReviews(getStoredReviews())}
+      />
 
       {/* Reviews Grid */}
       <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
