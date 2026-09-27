@@ -71,7 +71,7 @@ function PhotographerDetailPage() {
 
         <section className="mt-20">
           <h2 className="font-display text-4xl">Portfolio</h2>
-          {p.portfolio_images.length === 0 ? (
+          {!Array.isArray(p.portfolio_images) || p.portfolio_images.length === 0 ? (
             <p className="mt-6 text-mute">Nothing available yet.</p>
           ) : (
             <div className="mt-8 columns-1 gap-4 sm:columns-2 lg:columns-3">
@@ -89,7 +89,7 @@ function PhotographerDetailPage() {
 
         <section className="mt-20">
           <h2 className="font-display text-4xl">Packages</h2>
-          {p.packages.length === 0 ? (
+          {!Array.isArray(p.packages) || p.packages.length === 0 ? (
             <p className="mt-6 text-mute">Nothing available yet.</p>
           ) : (
             <div className="mt-8 grid gap-6 md:grid-cols-3">

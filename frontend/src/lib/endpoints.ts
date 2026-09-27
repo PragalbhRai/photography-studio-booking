@@ -206,13 +206,15 @@ export const availabilityApi = {
     package_id: string
     date: string
   }): Promise<AvailabilityResponse> => {
-    try {
-      const response = await apiClient.get<AvailabilityResponse>('/availability', {
-        params,
-      })
-      if (response.data?.available_slots) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.get<AvailabilityResponse>('/availability', {
+          params,
+        })
+        if (response.data && isValidArray(response.data.available_slots)) return response.data
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const slots = generateMockSlots(params.date)
     return {
@@ -293,11 +295,13 @@ function savePhotographerBlockedPeriods(photogId: string, list: BlockedPeriod[])
 
 export const bookingsApi = {
   mine: async (): Promise<Booking[]> => {
-    try {
-      const response = await apiClient.get<Booking[]>('/bookings/me')
-      if (response.data && response.data.length > 0) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.get<Booking[]>('/bookings/me')
+        if (isValidArray<Booking>(response.data)) return response.data
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const user = getCurrentUser()
     const all = getLocalBookings()
@@ -311,11 +315,13 @@ export const bookingsApi = {
     })
   },
   photographer: async (): Promise<Booking[]> => {
-    try {
-      const response = await apiClient.get<Booking[]>('/bookings/photographer/me')
-      if (response.data && response.data.length > 0) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.get<Booking[]>('/bookings/photographer/me')
+        if (isValidArray<Booking>(response.data)) return response.data
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const user = getCurrentUser()
     const photogId = getCurrentPhotographerId()
@@ -386,11 +392,13 @@ export const bookingsApi = {
 
 export const workingHoursApi = {
   list: async (): Promise<WorkingHour[]> => {
-    try {
-      const response = await apiClient.get<WorkingHour[]>('/working-hours')
-      if (response.data && response.data.length > 0) return response.data
-    } catch {
-      // fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.get<WorkingHour[]>('/working-hours')
+        if (isValidArray<WorkingHour>(response.data)) return response.data
+      } catch {
+        // fallback
+      }
     }
     const photogId = getCurrentPhotographerId()
     return getPhotographerWorkingHours(photogId)
@@ -440,11 +448,13 @@ export const workingHoursApi = {
 
 export const blockedPeriodsApi = {
   list: async (): Promise<BlockedPeriod[]> => {
-    try {
-      const response = await apiClient.get<BlockedPeriod[]>('/blocked-periods')
-      if (response.data) return response.data
-    } catch {
-      // fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.get<BlockedPeriod[]>('/blocked-periods')
+        if (isValidArray<BlockedPeriod>(response.data)) return response.data
+      } catch {
+        // fallback
+      }
     }
     const photogId = getCurrentPhotographerId()
     return getPhotographerBlockedPeriods(photogId)

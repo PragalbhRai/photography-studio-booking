@@ -40,7 +40,7 @@ function CustomerDashboard() {
     },
   })
 
-  const { upcoming, past } = splitBookings(query.data ?? [])
+  const { upcoming, past } = splitBookings(Array.isArray(query.data) ? query.data : [])
 
   return (
     <div className="mx-auto max-w-site px-5 py-16 md:px-8">
@@ -92,7 +92,7 @@ function Section({
     <section className="mt-12">
       <h2 className="font-display text-3xl">{title}</h2>
       {error ? <p className="mt-3 text-sm text-red-800">{error}</p> : null}
-      {bookings.length === 0 ? (
+      {!Array.isArray(bookings) || bookings.length === 0 ? (
         <p className="mt-4 text-sm text-mute">Nothing available yet.</p>
       ) : (
         <ul className="mt-6 divide-y divide-line border border-line bg-cream">

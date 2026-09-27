@@ -197,7 +197,7 @@ function AdminDashboard() {
               <Skeleton className="mt-4 h-48" />
             ) : photographers.isError ? (
               <PageState title="Something went wrong. Please try again." body="Could not load photographers." />
-            ) : !photographers.data?.length ? (
+            ) : !Array.isArray(photographers.data) || !photographers.data.length ? (
               <p className="mt-4 text-sm text-mute">Nothing available yet.</p>
             ) : (
               <ul className="mt-4 divide-y divide-line border border-line bg-cream">
@@ -285,7 +285,7 @@ function AdminDashboard() {
               <Skeleton className="mt-4 h-48" />
             ) : packages.isError ? (
               <PageState title="Something went wrong. Please try again." body="Could not load packages." />
-            ) : !packages.data?.length ? (
+            ) : !Array.isArray(packages.data) || !packages.data.length ? (
               <p className="mt-4 text-sm text-mute">Nothing available yet.</p>
             ) : (
               <ul className="mt-4 divide-y divide-line border border-line bg-cream">

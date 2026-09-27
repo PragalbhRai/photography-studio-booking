@@ -151,7 +151,7 @@ function BookPage() {
               </div>
             ) : packagesQuery.isError ? (
               <PageState title="Something went wrong. Please try again." body="Packages could not be loaded." />
-            ) : !packagesQuery.data?.length ? (
+            ) : !Array.isArray(packagesQuery.data) || !packagesQuery.data.length ? (
               <PageState title="Nothing available yet." body="There are no bookable packages." />
             ) : (
               <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -195,7 +195,7 @@ function BookPage() {
               </div>
             ) : photographersQuery.isError ? (
               <PageState title="Something went wrong. Please try again." body="Photographers could not be loaded." />
-            ) : !photographersQuery.data?.length ? (
+            ) : !Array.isArray(photographersQuery.data) || !photographersQuery.data.length ? (
               <PageState title="Nothing available yet." body="No photographers are listed." />
             ) : (
               <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -283,7 +283,7 @@ function BookPage() {
                   </Button>
                 }
               />
-            ) : !availabilityQuery.data?.available_slots.length ? (
+            ) : !Array.isArray(availabilityQuery.data?.available_slots) || !availabilityQuery.data.available_slots.length ? (
               <PageState title="Nothing available yet." body="No times are open on this date. Please choose another day." />
             ) : (
               <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6">

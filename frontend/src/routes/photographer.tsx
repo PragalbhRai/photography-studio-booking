@@ -135,7 +135,7 @@ function PhotographerBookingsPanel() {
     <div>
       <h2 className="font-display text-3xl">Assigned client sittings</h2>
       <ul className="mt-6 divide-y divide-line border border-line bg-cream">
-        {bookings.map((booking) => (
+        {(Array.isArray(bookings) ? bookings : []).map((booking) => (
           <li
             key={booking.id}
             className="flex flex-col gap-4 px-5 py-5 md:flex-row md:items-center md:justify-between"
@@ -265,7 +265,7 @@ function WorkingHoursPanel() {
           <Skeleton className="mt-4 h-48" />
         ) : query.isError ? (
           <p className="mt-4 text-sm text-red-800">Something went wrong. Please try again.</p>
-        ) : !query.data?.length ? (
+        ) : !Array.isArray(query.data) || !query.data.length ? (
           <p className="mt-4 text-sm text-mute">Nothing available yet.</p>
         ) : (
           <ul className="mt-4 divide-y divide-line border border-line bg-cream">
@@ -364,7 +364,7 @@ function BlockedPanel() {
           <Skeleton className="mt-4 h-48" />
         ) : query.isError ? (
           <p className="mt-4 text-sm text-red-800">Something went wrong. Please try again.</p>
-        ) : !query.data?.length ? (
+        ) : !Array.isArray(query.data) || !query.data.length ? (
           <p className="mt-4 text-sm text-mute">No blocked periods added yet.</p>
         ) : (
           <ul className="mt-4 divide-y divide-line border border-line bg-cream">
