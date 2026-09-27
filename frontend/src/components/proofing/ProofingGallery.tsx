@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { TiltCard } from '@/components/ui/TiltCard'
 import { CinematicSlideshow } from './CinematicSlideshow'
 import { WallArtVisualizerModal } from './WallArtVisualizerModal'
+import { OpticalLoupeInspector } from './OpticalLoupeInspector'
 
 export interface ProofFrame {
   id: string
@@ -97,6 +98,8 @@ export function ProofingGallery() {
   const [slideshowOpen, setSlideshowOpen] = useState<boolean>(false)
   const [visualizerOpen, setVisualizerOpen] = useState<boolean>(false)
   const [visualizerProof, setVisualizerProof] = useState<ProofFrame | undefined>(undefined)
+  const [loupeOpen, setLoupeOpen] = useState<boolean>(false)
+  const [loupeProof, setLoupeProof] = useState<ProofFrame | undefined>(undefined)
   const [notes, setNotes] = useState<Record<string, string>>({
     'proof-1': 'Please preserve rich crimson hue in the veil and remove background tourist.',
   })
@@ -199,6 +202,16 @@ export function ProofingGallery() {
             className="rounded border border-line bg-cream px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-paper transition flex items-center gap-1.5 shadow-sm"
           >
             <span>🖼️</span> Visualize on Wall
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setLoupeProof(filteredProofs[0] || SAMPLE_PROOFS[0])
+              setLoupeOpen(true)
+            }}
+            className="rounded border border-line bg-cream px-3 py-1.5 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-paper transition flex items-center gap-1.5 shadow-sm"
+          >
+            <span>🔬</span> 100MP Loupe
           </button>
 
           {submitted ? (
@@ -388,6 +401,16 @@ export function ProofingGallery() {
                 >
                   <span>🖼️</span> Preview on Wall
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoupeProof(selectedProof)
+                    setLoupeOpen(true)
+                  }}
+                  className="rounded border border-line bg-cream px-3 py-2 text-xs uppercase tracking-wider text-ink hover:border-ink hover:bg-paper transition flex items-center gap-1.5"
+                >
+                  <span>🔬</span> 100MP Loupe
+                </button>
                 <Button size="sm" onClick={() => setSelectedProof(null)}>
                   Save & Done
                 </Button>
@@ -413,6 +436,15 @@ export function ProofingGallery() {
         proofs={SAMPLE_PROOFS}
         initialProof={visualizerProof}
       />
+
+      {/* 100MP Optical Microscope Loupe & Sensor Channel Inspector */}
+      {loupeProof && (
+        <OpticalLoupeInspector
+          isOpen={loupeOpen}
+          onClose={() => setLoupeOpen(false)}
+          proof={loupeProof}
+        />
+      )}
     </div>
   )
 }

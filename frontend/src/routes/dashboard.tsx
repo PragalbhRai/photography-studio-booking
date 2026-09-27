@@ -17,6 +17,7 @@ import { MOODBOARD_PRESETS } from '@/lib/moodboards'
 import { ShootPrepGuide } from '@/components/dashboard/ShootPrepGuide'
 import { ProofingGallery } from '@/components/proofing/ProofingGallery'
 import { LeaveReviewModal } from '@/components/reviews/LeaveReviewModal'
+import { LegalAgreementsSection } from '@/components/contracts/LegalAgreementsSection'
 import { useAuth } from '@/lib/auth'
 import type { Booking } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
@@ -105,6 +106,7 @@ function CustomerDashboard() {
             onReview={(b) => setReviewingBooking(b)}
           />
           <ProofingGallery />
+          <LegalAgreementsSection userName={user?.full_name} />
         </>
       )}
 
