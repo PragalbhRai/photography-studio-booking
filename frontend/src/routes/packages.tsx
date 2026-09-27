@@ -37,7 +37,7 @@ function PackagesPage() {
               </Button>
             }
           />
-        ) : !query.data?.length ? (
+        ) : !Array.isArray(query.data) || !query.data.length ? (
           <PageState title="Nothing available yet." body="Packages will appear here once they are published." />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

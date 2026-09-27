@@ -86,8 +86,8 @@ function HomePage() {
     queryFn: photographersApi.list,
   })
 
-  const packages = packagesQuery.data?.slice(0, 6) ?? []
-  const photographers = photographersQuery.data?.slice(0, 4) ?? []
+  const packages = Array.isArray(packagesQuery.data) ? packagesQuery.data.slice(0, 6) : []
+  const photographers = Array.isArray(photographersQuery.data) ? photographersQuery.data.slice(0, 4) : []
 
   return (
     <div>

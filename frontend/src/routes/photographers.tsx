@@ -36,7 +36,7 @@ function PhotographersPage() {
               </Button>
             }
           />
-        ) : !query.data?.length ? (
+        ) : !Array.isArray(query.data) || !query.data.length ? (
           <PageState title="Nothing available yet." body="The roster will appear here once photographers are added." />
         ) : (
           <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">

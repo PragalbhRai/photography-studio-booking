@@ -21,8 +21,18 @@ import {
 
 const TOKEN_KEY = 'photography_studio_token'
 
+const hasCustomBackend = Boolean(import.meta.env.VITE_API_URL)
+
+function isValidArray<T>(data: unknown): data is T[] {
+  return Array.isArray(data)
+}
+
+function isValidObject<T>(data: unknown): data is T {
+  return typeof data === 'object' && data !== null && !Array.isArray(data) && typeof (data as any) !== 'string'
+}
+
 export const apiClient = axios.create({
-  baseURL: '/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
   timeout: 3000,
   headers: {
     'Content-Type': 'application/json',
@@ -67,32 +77,38 @@ function saveCustomPackage(pkg: Package) {
 
 export const packagesApi = {
   list: async (): Promise<Package[]> => {
-    try {
-      const response = await apiClient.get<Package[]>('/packages')
-      if (response.data && response.data.length > 0) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.get<Package[]>('/packages')
+        if (isValidArray<Package>(response.data) && response.data.length > 0) return response.data
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const custom = getCustomPackages()
     return [...custom, ...DEMO_PACKAGES]
   },
   get: async (id: string): Promise<Package> => {
-    try {
-      const response = await apiClient.get<Package>(`/packages/${id}`)
-      if (response.data) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.get<Package>(`/packages/${id}`)
+        if (isValidObject<Package>(response.data)) return response.data
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const custom = getCustomPackages()
     const all = [...custom, ...DEMO_PACKAGES]
     return all.find((p) => p.id === id) || all[0]
   },
   create: async (data: Partial<Package> & { photographer_ids?: string[] }): Promise<Package> => {
-    try {
-      const response = await apiClient.post<Package>('/packages', data)
-      if (response.data) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.post<Package>('/packages', data)
+        if (isValidObject<Package>(response.data)) return response.data
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const newPkg: Package = {
       id: 'pkg-custom-' + Date.now(),
@@ -108,30 +124,36 @@ export const packagesApi = {
     return newPkg
   },
   assignPhotographer: async (packageId: string, photographerId: string): Promise<void> => {
-    try {
-      await apiClient.post(`/packages/${packageId}/photographers`, { photographer_id: photographerId })
-    } catch {
-      // Mock assignment acknowledged
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        await apiClient.post(`/packages/${packageId}/photographers`, { photographer_id: photographerId })
+      } catch {
+        // Mock assignment acknowledged
+      }
     }
   },
 }
 
 export const photographersApi = {
   list: async (): Promise<PhotographerListItem[]> => {
-    try {
-      const response = await apiClient.get<PhotographerListItem[]>('/photographers')
-      if (response.data && response.data.length > 0) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.get<PhotographerListItem[]>('/photographers')
+        if (isValidArray<PhotographerListItem>(response.data) && response.data.length > 0) return response.data
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     return DEMO_PHOTOGRAPHERS
   },
   get: async (id: string): Promise<PhotographerDetail> => {
-    try {
-      const response = await apiClient.get<PhotographerDetail>(`/photographers/${id}`)
-      if (response.data) return response.data
-    } catch {
-      // Backend unavailable; use fallback
+    if (hasCustomBackend || !import.meta.env.PROD) {
+      try {
+        const response = await apiClient.get<PhotographerDetail>(`/photographers/${id}`)
+        if (isValidObject<PhotographerDetail>(response.data)) return response.data
+      } catch {
+        // Backend unavailable; use fallback
+      }
     }
     const detail = DEMO_PHOTOGRAPHER_DETAILS[id]
     if (detail) return detail
