@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { packagesApi, queryKeys } from '@/lib/endpoints'
 import { PackageCard } from '@/components/packages/PackageCard'
+import { InvestmentCalculator } from '@/components/packages/InvestmentCalculator'
 import { PageState, Skeleton } from '@/components/ui/States'
 import { Button } from '@/components/ui/Button'
 
@@ -47,6 +48,9 @@ function PackagesPage() {
           </div>
         )}
       </div>
+
+      {/* Interactive Bespoke Sitting Investment Calculator */}
+      <InvestmentCalculator />
     </div>
   )
 }

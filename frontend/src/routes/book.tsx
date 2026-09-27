@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/Button'
 import { Photo } from '@/components/ui/Photo'
 import { PageState, Skeleton } from '@/components/ui/States'
 import { SITTING_ADDONS } from '@/lib/addons'
+import { MoodboardSelector } from '@/components/booking/MoodboardSelector'
+import { MOODBOARD_PRESETS } from '@/lib/moodboards'
 import { cn } from '@/lib/cn'
 
 type BookSearch = {
@@ -45,6 +47,7 @@ function BookPage() {
   const [confirmed, setConfirmed] = useState(false)
   const [conflict, setConflict] = useState(false)
   const [selectedAddons, setSelectedAddons] = useState<string[]>([])
+  const [selectedMoodboard, setSelectedMoodboard] = useState<string | null>('royal-opulence')
 
   const packageId = search.packageId
   const photographerId = search.photographerId
@@ -101,6 +104,7 @@ function BookPage() {
         start_datetime: slot!.start_datetime,
         addons: selectedAddons,
         price: finalPrice,
+        moodboard_id: selectedMoodboard ?? undefined,
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.myBookings })
@@ -325,50 +329,61 @@ function BookPage() {
         ) : null}
 
         {step === 4 && pkg && photographer && slot && date ? (
-          <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="border border-line bg-cream p-8">
-              <h2 className="font-display text-3xl">Confirm your sitting</h2>
-              <dl className="mt-8 space-y-4 text-sm">
-                <div className="flex justify-between gap-4 border-b border-line pb-3">
-                  <dt className="text-mute">Package</dt>
-                  <dd className="font-medium">{pkg.name}</dd>
-                </div>
-                <div className="flex justify-between gap-4 border-b border-line pb-3">
-                  <dt className="text-mute">Photographer</dt>
-                  <dd>{photographer.full_name}</dd>
-                </div>
-                <div className="flex justify-between gap-4 border-b border-line pb-3">
-                  <dt className="text-mute">Date</dt>
-                  <dd>{formatDate(slot.start_datetime)}</dd>
-                </div>
-                <div className="flex justify-between gap-4 border-b border-line pb-3">
-                  <dt className="text-mute">Time</dt>
-                  <dd className="flex items-center gap-1.5">
-                    {slot.display_time}
-                    {slot.is_golden_hour ? (
-                      <span className="text-[9px] uppercase tracking-wider bg-brass/15 text-brass px-1.5 py-0.5 rounded font-medium">
-                        ✨ Golden Hour
-                      </span>
-                    ) : null}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4 border-b border-line pb-3">
-                  <dt className="text-mute">Duration</dt>
-                  <dd>{formatDuration(pkg.duration_minutes)}</dd>
-                </div>
-                <div className="flex justify-between gap-4 border-b border-line pb-3">
-                  <dt className="text-mute">Base Package</dt>
-                  <dd>{formatPrice(pkg.price)}</dd>
-                </div>
-                {selectedAddons.length > 0 ? (
-                  <div className="flex justify-between gap-4 border-b border-line pb-3 text-brass">
-                    <dt className="flex items-center gap-1">
-                      <span>Enhancements ({selectedAddons.length})</span>
-                    </dt>
-                    <dd className="font-medium">+{formatPrice(addonsTotal)}</dd>
+          <section className="space-y-8">
+            <MoodboardSelector selectedId={selectedMoodboard} onSelect={setSelectedMoodboard} />
+
+            <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="border border-line bg-cream p-8">
+                <h2 className="font-display text-3xl">Confirm your sitting</h2>
+                <dl className="mt-8 space-y-4 text-sm">
+                  <div className="flex justify-between gap-4 border-b border-line pb-3">
+                    <dt className="text-mute">Package</dt>
+                    <dd className="font-medium">{pkg.name}</dd>
                   </div>
-                ) : null}
-                <div className="flex justify-between gap-4 pt-1">
+                  <div className="flex justify-between gap-4 border-b border-line pb-3">
+                    <dt className="text-mute">Photographer</dt>
+                    <dd>{photographer.full_name}</dd>
+                  </div>
+                  <div className="flex justify-between gap-4 border-b border-line pb-3">
+                    <dt className="text-mute">Date</dt>
+                    <dd>{formatDate(slot.start_datetime)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-4 border-b border-line pb-3">
+                    <dt className="text-mute">Time</dt>
+                    <dd className="flex items-center gap-1.5">
+                      {slot.display_time}
+                      {slot.is_golden_hour ? (
+                        <span className="text-[9px] uppercase tracking-wider bg-brass/15 text-brass px-1.5 py-0.5 rounded font-medium">
+                          ✨ Golden Hour
+                        </span>
+                      ) : null}
+                    </dd>
+                  </div>
+                  {selectedMoodboard ? (
+                    <div className="flex justify-between gap-4 border-b border-line pb-3">
+                      <dt className="text-mute">Visual Aesthetic</dt>
+                      <dd className="font-medium text-brass">
+                        {MOODBOARD_PRESETS.find((m) => m.id === selectedMoodboard)?.name ?? selectedMoodboard}
+                      </dd>
+                    </div>
+                  ) : null}
+                  <div className="flex justify-between gap-4 border-b border-line pb-3">
+                    <dt className="text-mute">Duration</dt>
+                    <dd>{formatDuration(pkg.duration_minutes)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-4 border-b border-line pb-3">
+                    <dt className="text-mute">Base Package</dt>
+                    <dd>{formatPrice(pkg.price)}</dd>
+                  </div>
+                  {selectedAddons.length > 0 ? (
+                    <div className="flex justify-between gap-4 border-b border-line pb-3 text-brass">
+                      <dt className="flex items-center gap-1">
+                        <span>Enhancements ({selectedAddons.length})</span>
+                      </dt>
+                      <dd className="font-medium">+{formatPrice(addonsTotal)}</dd>
+                    </div>
+                  ) : null}
+                  <div className="flex justify-between gap-4 pt-1">
                   <dt className="text-mute">Total Investment</dt>
                   <dd className="font-display text-2xl font-semibold text-ink">{formatPrice(finalPrice)}</dd>
                 </div>
@@ -473,6 +488,7 @@ function BookPage() {
                   )
                 })}
               </div>
+            </div>
             </div>
           </section>
         ) : null}

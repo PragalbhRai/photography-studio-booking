@@ -80,6 +80,7 @@ export interface Booking {
   package_name?: string | null
   price?: number
   addons?: string[]
+  moodboard_id?: string
 }
 
 export interface WorkingHour {

@@ -13,6 +13,8 @@ import {
 } from '@/lib/format'
 import { generateGoogleCalendarUrl, downloadIcsFile } from '@/lib/calendar'
 import { SITTING_ADDONS } from '@/lib/addons'
+import { MOODBOARD_PRESETS } from '@/lib/moodboards'
+import { ShootPrepGuide } from '@/components/dashboard/ShootPrepGuide'
 import { useAuth } from '@/lib/auth'
 import type { Booking } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
@@ -49,6 +51,7 @@ function CustomerDashboard() {
   })
 
   const { upcoming, past } = splitBookings(Array.isArray(query.data) ? query.data : [])
+  const nextUpcoming = upcoming.find((b) => b.status === 'confirmed')
 
   return (
     <div className="mx-auto max-w-site px-5 py-16 md:px-8">
@@ -82,6 +85,7 @@ function CustomerDashboard() {
         </div>
       ) : (
         <>
+          {nextUpcoming ? <ShootPrepGuide booking={nextUpcoming} /> : null}
           <Section title="Upcoming" bookings={upcoming} onCancel={(id) => cancelMutation.mutate(id)} pendingId={cancelMutation.isPending ? cancelMutation.variables : null} error={cancelMutation.isError ? getErrorMessage(cancelMutation.error) : null} isUpcoming />
           <Section title="Past" bookings={past} />
         </>
@@ -152,6 +156,31 @@ function Section({
                       ) : null
                     })}
                   </div>
+                ) : null}
+
+                {/* Selected Aesthetic Moodboard if any */}
+                {booking.moodboard_id ? (
+                  (() => {
+                    const mb = MOODBOARD_PRESETS.find((m) => m.id === booking.moodboard_id)
+                    return mb ? (
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] uppercase tracking-wider text-mute">Aesthetic:</span>
+                        <span className="rounded border border-line bg-paper px-2 py-0.5 text-[10px] text-ink font-medium">
+                          ✨ {mb.name}
+                        </span>
+                        <div className="flex items-center -space-x-1">
+                          {mb.palette.map((c) => (
+                            <span
+                              key={c.name}
+                              className="inline-block h-2.5 w-2.5 rounded-full border border-ink/20"
+                              style={{ backgroundColor: c.hex }}
+                              title={c.name}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : null
+                  })()
                 ) : null}
 
                 <p className="mt-2.5 text-[11px] uppercase tracking-[0.16em] text-brass">{statusLabel(booking.status)}</p>

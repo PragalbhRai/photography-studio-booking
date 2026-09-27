@@ -382,6 +382,7 @@ export const bookingsApi = {
     start_datetime: string
     addons?: string[]
     price?: number
+    moodboard_id?: string
   }): Promise<Booking> => {
     if (hasCustomBackend || !import.meta.env.PROD) {
       try {
@@ -417,6 +418,7 @@ export const bookingsApi = {
       package_name: pkg.name,
       price: data.price ?? pkg.price,
       addons: data.addons ?? [],
+      moodboard_id: data.moodboard_id,
     }
     saveLocalBooking(newBooking)
     return newBooking
