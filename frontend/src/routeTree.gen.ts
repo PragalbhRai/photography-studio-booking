@@ -18,6 +18,7 @@ import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as PhotographerRouteImport } from './routes/photographer'
 import { Route as PhotographersRouteImport } from './routes/photographers'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as StudioLightingRouteImport } from './routes/studio-lighting'
 import { Route as PackagesPackageIdRouteImport } from './routes/packages.$packageId'
 import { Route as PhotographersPhotographerIdRouteImport } from './routes/photographers.$photographerId'
 
@@ -66,6 +67,11 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioLightingRoute = StudioLightingRouteImport.update({
+  id: '/studio-lighting',
+  path: '/studio-lighting',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PackagesPackageIdRoute = PackagesPackageIdRouteImport.update({
   id: '/$packageId',
   path: '/$packageId',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/photographer': typeof PhotographerRoute
   '/photographers': typeof PhotographersRouteWithChildren
   '/register': typeof RegisterRoute
+  '/studio-lighting': typeof StudioLightingRoute
   '/packages/$packageId': typeof PackagesPackageIdRoute
   '/photographers/$photographerId': typeof PhotographersPhotographerIdRoute
 }
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/photographer': typeof PhotographerRoute
   '/photographers': typeof PhotographersRouteWithChildren
   '/register': typeof RegisterRoute
+  '/studio-lighting': typeof StudioLightingRoute
   '/packages/$packageId': typeof PackagesPackageIdRoute
   '/photographers/$photographerId': typeof PhotographersPhotographerIdRoute
 }
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/photographer': typeof PhotographerRoute
   '/photographers': typeof PhotographersRouteWithChildren
   '/register': typeof RegisterRoute
+  '/studio-lighting': typeof StudioLightingRoute
   '/packages/$packageId': typeof PackagesPackageIdRoute
   '/photographers/$photographerId': typeof PhotographersPhotographerIdRoute
 }
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/photographer'
     | '/photographers'
     | '/register'
+    | '/studio-lighting'
     | '/packages/$packageId'
     | '/photographers/$photographerId'
   fileRoutesByTo: FileRoutesByTo
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/photographer'
     | '/photographers'
     | '/register'
+    | '/studio-lighting'
     | '/packages/$packageId'
     | '/photographers/$photographerId'
   id:
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/photographer'
     | '/photographers'
     | '/register'
+    | '/studio-lighting'
     | '/packages/$packageId'
     | '/photographers/$photographerId'
   fileRoutesById: FileRoutesById
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   PhotographerRoute: typeof PhotographerRoute
   PhotographersRoute: typeof PhotographersRouteWithChildren
   RegisterRoute: typeof RegisterRoute
+  StudioLightingRoute: typeof StudioLightingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -237,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio-lighting': {
+      id: '/studio-lighting'
+      path: '/studio-lighting'
+      fullPath: '/studio-lighting'
+      preLoaderRoute: typeof StudioLightingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/packages/$packageId': {
       id: '/packages/$packageId'
       path: '/$packageId'
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   PhotographerRoute: PhotographerRoute,
   PhotographersRoute: PhotographersRouteWithChildren,
   RegisterRoute: RegisterRoute,
+  StudioLightingRoute: StudioLightingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

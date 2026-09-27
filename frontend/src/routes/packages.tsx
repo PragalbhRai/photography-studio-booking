@@ -4,6 +4,7 @@ import { packagesApi, queryKeys } from '@/lib/endpoints'
 import { PackageCard } from '@/components/packages/PackageCard'
 import { InvestmentCalculator } from '@/components/packages/InvestmentCalculator'
 import { ClientReviewsSection } from '@/components/reviews/ClientReviewsSection'
+import { VirtualLightingStudio } from '@/components/studio/VirtualLightingStudio'
 import { PageState, Skeleton } from '@/components/ui/States'
 import { Button } from '@/components/ui/Button'
 
@@ -64,6 +65,11 @@ function PackagesPage() {
 
       {/* Interactive Bespoke Sitting Investment Calculator */}
       <InvestmentCalculator />
+
+      {/* 3D Virtual Studio Lighting Simulator Lab */}
+      <div className="mt-16">
+        <VirtualLightingStudio />
+      </div>
 
       {/* Verified Client Reviews */}
       <ClientReviewsSection />

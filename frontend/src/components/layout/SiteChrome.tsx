@@ -8,6 +8,7 @@ const NAV = [
   { to: '/', hash: 'work', label: 'Work' },
   { to: '/packages', label: 'Packages' },
   { to: '/photographers', label: 'Photographers' },
+  { to: '/studio-lighting', label: '💡 3D Light Lab' },
   { to: '/book', label: 'Book' },
 ] as const
 
@@ -158,6 +159,11 @@ export function SiteFooter() {
             <li>
               <Link to="/photographers" className="hover:text-cream">
                 Photographers
+              </Link>
+            </li>
+            <li>
+              <Link to="/studio-lighting" className="hover:text-cream text-brass">
+                💡 3D Virtual Light Lab
               </Link>
             </li>
             <li>
