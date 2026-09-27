@@ -1,13 +1,27 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import { photographersApi, queryKeys } from '@/lib/endpoints'
 import { PhotographerCard } from '@/components/photographers/PhotographerCard'
+import { KitbagShowcase } from '@/components/photographers/KitbagShowcase'
+import { ClientReviewsSection } from '@/components/reviews/ClientReviewsSection'
 import { PageState, Skeleton } from '@/components/ui/States'
 import { Button } from '@/components/ui/Button'
 
 export const Route = createFileRoute('/photographers')({
-  component: PhotographersPage,
+  component: PhotographersRouteComponent,
 })
+
+function PhotographersRouteComponent() {
+  const isChildActive = useRouterState({
+    select: (s) => s.location.pathname.replace(/\/+$/, '') !== '/photographers',
+  })
+
+  if (isChildActive) {
+    return <Outlet />
+  }
+
+  return <PhotographersPage />
+}
 
 function PhotographersPage() {
   const query = useQuery({ queryKey: queryKeys.photographers, queryFn: photographersApi.list })
@@ -46,6 +60,15 @@ function PhotographersPage() {
           </div>
         )}
       </div>
+
+      {/* Optical Equipment & Camera Gear Showcase */}
+      <KitbagShowcase photographerId="photo-1" photographerName="Studio Master Roster" />
+
+      {/* Verified Client Testimonials */}
+      <ClientReviewsSection
+        title="Client Commendations & Reviews"
+        subtitle="Verified testimonials from private patrons, celebrities, and fashion houses who commissioned our lead artists."
+      />
     </div>
   )
 }

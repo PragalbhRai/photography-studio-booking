@@ -1,14 +1,27 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import { packagesApi, queryKeys } from '@/lib/endpoints'
 import { PackageCard } from '@/components/packages/PackageCard'
 import { InvestmentCalculator } from '@/components/packages/InvestmentCalculator'
+import { ClientReviewsSection } from '@/components/reviews/ClientReviewsSection'
 import { PageState, Skeleton } from '@/components/ui/States'
 import { Button } from '@/components/ui/Button'
 
 export const Route = createFileRoute('/packages')({
-  component: PackagesPage,
+  component: PackagesRouteComponent,
 })
+
+function PackagesRouteComponent() {
+  const isChildActive = useRouterState({
+    select: (s) => s.location.pathname.replace(/\/+$/, '') !== '/packages',
+  })
+
+  if (isChildActive) {
+    return <Outlet />
+  }
+
+  return <PackagesPage />
+}
 
 function PackagesPage() {
   const query = useQuery({ queryKey: queryKeys.packages, queryFn: packagesApi.list })
@@ -51,6 +64,9 @@ function PackagesPage() {
 
       {/* Interactive Bespoke Sitting Investment Calculator */}
       <InvestmentCalculator />
+
+      {/* Verified Client Reviews */}
+      <ClientReviewsSection />
     </div>
   )
 }

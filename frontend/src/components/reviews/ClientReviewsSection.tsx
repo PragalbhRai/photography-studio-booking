@@ -17,11 +17,15 @@ export function ClientReviewsSection({
 }: Props) {
   const [activeCategory, setActiveCategory] = useState<string>(categoryFilter ?? 'all')
 
-  const reviews = CLIENT_REVIEWS.filter((r) => {
+  let reviews = CLIENT_REVIEWS.filter((r) => {
     if (photographerId && r.photographerId !== photographerId) return false
     if (activeCategory !== 'all' && r.category !== activeCategory) return false
     return true
   })
+
+  if (reviews.length === 0) {
+    reviews = CLIENT_REVIEWS.slice(0, 3)
+  }
 
   return (
     <section className="mt-20 border-t border-line pt-16">
