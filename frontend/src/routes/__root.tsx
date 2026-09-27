@@ -1,5 +1,6 @@
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import { SiteFooter, SiteHeader } from '@/components/layout/SiteChrome'
+import { ConciergeChatModal } from '@/components/concierge/ConciergeChatModal'
 import type { RouterContext } from '@/lib/router-context'
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -15,6 +16,7 @@ function RootLayout() {
         <Outlet />
       </main>
       <SiteFooter />
+      <ConciergeChatModal />
     </div>
   )
 }
