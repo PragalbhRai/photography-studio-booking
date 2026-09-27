@@ -17,6 +17,7 @@ import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/TextField'
 import { PageState, Skeleton } from '@/components/ui/States'
+import { PhotographerStudioConsole } from '@/components/photographers/PhotographerStudioConsole'
 
 export const Route = createFileRoute('/photographer')({
   beforeLoad: ({ context, location }) => requireRole({ context, location, roles: ['photographer'] }),
@@ -72,14 +73,18 @@ function Overview() {
   })
   if (hours.isLoading || blocked.isLoading || bookings.isLoading) return <Skeleton className="h-40" />
   return (
-    <div className="grid gap-4 md:grid-cols-4">
-      <Stat
-        label="Confirmed bookings"
-        value={String(bookings.data?.filter((b) => b.status === 'confirmed').length ?? 0)}
-      />
-      <Stat label="Working days" value={String(hours.data?.length ?? 0)} />
-      <Stat label="Blocked periods" value={String(blocked.data?.length ?? 0)} />
-      <Stat label="Timezone" value="Asia/Kolkata" />
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-4">
+        <Stat
+          label="Confirmed bookings"
+          value={String(bookings.data?.filter((b) => b.status === 'confirmed').length ?? 0)}
+        />
+        <Stat label="Working days" value={String(hours.data?.length ?? 0)} />
+        <Stat label="Blocked periods" value={String(blocked.data?.length ?? 0)} />
+        <Stat label="Timezone" value="Asia/Kolkata" />
+      </div>
+
+      <PhotographerStudioConsole />
     </div>
   )
 }
