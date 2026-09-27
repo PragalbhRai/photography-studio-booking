@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { getStoredContracts, type SignedContract } from '@/lib/contracts'
 import { LegalSignatureModal } from './LegalSignatureModal'
+import { CertificateOfAuthenticityModal } from './CertificateOfAuthenticityModal'
 
 interface Props {
   userName?: string
@@ -10,6 +11,7 @@ interface Props {
 export function LegalAgreementsSection({ userName = 'Patron' }: Props) {
   const [contracts, setContracts] = useState<SignedContract[]>([])
   const [isSigningOpen, setIsSigningOpen] = useState(false)
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false)
   const [activeCertificate, setActiveCertificate] = useState<SignedContract | null>(null)
 
   useEffect(() => {
@@ -102,7 +104,7 @@ export function LegalAgreementsSection({ userName = 'Patron' }: Props) {
                 variant="secondary"
                 onClick={() => {
                   setActiveCertificate(c)
-                  setIsSigningOpen(true)
+                  setIsCertificateOpen(true)
                 }}
               >
                 📜 View Certificate of Authenticity
@@ -112,20 +114,32 @@ export function LegalAgreementsSection({ userName = 'Patron' }: Props) {
         ))}
       </div>
 
-      {/* Signing & Certificate Modal */}
+      {/* Dedicated Museum Certificate of Authenticity Modal */}
+      <CertificateOfAuthenticityModal
+        isOpen={isCertificateOpen}
+        onClose={() => {
+          setIsCertificateOpen(false)
+          setActiveCertificate(null)
+        }}
+        contract={activeCertificate}
+      />
+
+      {/* Signing & Contract Agreement Modal */}
       <LegalSignatureModal
         isOpen={isSigningOpen}
         onClose={() => {
           setIsSigningOpen(false)
-          setActiveCertificate(null)
           refreshContracts()
         }}
-        sittingId={activeCertificate?.sittingId || 'NL-SIT-2026-088'}
-        clientName={activeCertificate?.clientName || userName || 'Pooja Malhotra'}
-        packageName={activeCertificate?.packageName || 'Royal Palace Wedding Masterwork'}
-        photographerName={activeCertificate?.photographerName || 'Aarav Sharma'}
-        onSigned={() => {
+        sittingId="NL-SIT-2026-088"
+        clientName={userName || 'Pooja Malhotra'}
+        packageName="Royal Palace Wedding Masterwork"
+        photographerName="Aarav Sharma"
+        onSigned={(newContract) => {
           refreshContracts()
+          setIsSigningOpen(false)
+          setActiveCertificate(newContract)
+          setIsCertificateOpen(true)
         }}
       />
     </div>
