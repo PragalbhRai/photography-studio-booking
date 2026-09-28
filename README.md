@@ -1,6 +1,8 @@
-# Photography Studio Booking Platform
+﻿# Photography Studio Booking Platform
 
 A 2-day hackathon project implementing a **Service Booking & Slot Manager** for photography studios.
+
+**Live Demo:** https://photography-studio-booking-fixed.vercel.app/
 
 ## Project Overview
 
@@ -80,11 +82,11 @@ npm run dev
 
 ```
 photography_studio/
-├── backend/          # FastAPI application
-├── frontend/         # React SPA
-├── docs/             # Architecture documentation
-├── .kiro/            # Kiro IDE configuration
-└── compose.yml       # Docker Compose configuration
+â”œâ”€â”€ backend/          # FastAPI application
+â”œâ”€â”€ frontend/         # React SPA
+â”œâ”€â”€ docs/             # Architecture documentation
+â”œâ”€â”€ .kiro/            # Kiro IDE configuration
+â””â”€â”€ compose.yml       # Docker Compose configuration
 ```
 
 ## Documentation
@@ -100,3 +102,5 @@ The `full-stack-fastapi-template-master/` directory contains the official FastAP
 ## License
 
 MIT
+
+
